@@ -1,2 +1,7 @@
-Pods/
 .DS_Store
+Server/lambda/node_modules/
+Server/*.py
+Server/lambda/package-lock.json
+sequence-api-slate/build/
+sequence-api-slate/vendor/
+Server/sequence.zip

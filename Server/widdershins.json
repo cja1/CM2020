@@ -1,0 +1,6 @@
+{
+  "language_tabs": [{ "shell": "Curl" }, { "javascript": "JavaScript" }, { "php": "PHP" }, { "python": "Python" }, { "ruby": "Ruby" }, { "go": "Go"}, { "java": "Java" }],
+  "toc_footers": [{"url": "https://compsci.s3.eu-west-1.amazonaws.com/CM2020/swagger/index.html", "description": "Prefer Swagger? Click here"}],
+  "omitBody": true,
+  "expandBody": true
+}

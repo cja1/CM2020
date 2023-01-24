@@ -1,0 +1,14 @@
+{
+  "name": "Sequence",
+  "version": "0.0.1",
+  "description": "Sequence Board Game designed for UOL Computer Science CM2020 course",
+  "author": "ASD Team 61 (T6G6)",
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "mysql2": "^2.2.5",
+    "sequelize": "^6.3.5",
+    "swagger-jsdoc": "^4.0.0",
+    "uuid": "^9.0.0",
+    "validator": "^13.7.0"
+  }
+}

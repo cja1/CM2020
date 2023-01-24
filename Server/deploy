@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd '/Users/callen/Documents/Personal/CompSci/CM2020 ASP/CM2020/Server'
+/Library/Frameworks/Python.framework/Versions/3.10/bin/python3 publish.py
