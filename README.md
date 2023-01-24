@@ -10,6 +10,8 @@
 
 **sequence-api-swagger**: Swagger-style API documentation. Documentation available here: [https://compsci.s3.eu-west-1.amazonaws.com/CM2020/swagger/index.html](https://compsci.s3.eu-west-1.amazonaws.com/CM2020/swagger/index.html)
 
+**client-demo**: A basic web client that accesses the endpoints - used for testing.
+
 Note: the API documentation is also available online in both [JSON](https://compsci.s3.eu-west-1.amazonaws.com/CM2020/swagger.json) and [YAML](https://compsci.s3.eu-west-1.amazonaws.com/CM2020/swagger.yaml) formats.
 
 
