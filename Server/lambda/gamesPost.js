@@ -6,8 +6,6 @@ const utilities = require(__dirname + '/utilities.js');
 
 var principalId;
 
-//lambda-local -l lambda/games.js -e testEventPost.js
-
 /**
  * @swagger
  *
@@ -65,7 +63,7 @@ function postGame(event, callback) {
 
     //create game with player 1 as the originator
     const game = {
-      code: generateGameCode(),
+      code: utilities.generateGameCode(),
       isActive: true,
       cardsP1: cardsP1.join(','),
       cardsP2: cardsP2.join(','),
@@ -79,13 +77,10 @@ function postGame(event, callback) {
     return models.Game.create(game);
   })
   .then(function(game) {
-    console.log(game);
     return callback(null, utilities.okResponse(event, { code: game.code }));
   }, function(err) {
-    console.log('HERE..2', err);
     return callback(null, utilities.errorResponse(event, err));
   }).catch(function (err) {
-    console.log('HERE..3', err);
     return callback(null, utilities.errorResponse(event, err));
   });
 }
@@ -101,15 +96,6 @@ function createPack() {
     });
   });
   return cards;
-}
-
-function generateGameCode() {
-  //Generate a random code
-  //Ignore 0, O, 1, I as too similar
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  return Array(utilities.GAME_CODE_LENGTH).fill(chars).map(function(x) {
-    return x[Math.floor(Math.random() * x.length)];
-  }).join('');
 }
 
 function generateEmptyBoardState() {
@@ -130,11 +116,11 @@ exports.handler = (event, context, callback) => {
   context.callbackWaitsForEmptyEventLoop = false;
   if (_.get(event, 'requestContext.authorizer.principalId', false) === false) {
     var err = new Error('Unauthorised (1)'); err.status = 401;
-    return callback(null, utilities.ErrorResponse(event, err));
+    return callback(null, utilities.errorResponse(event, err));
   }
   principalId = parseInt(event.requestContext.authorizer.principalId);
   const method = event.httpMethod || 'undefined';       //like GET
-  pathParameters = (event.pathParameters == null || !event.pathParameters.proxy) ? [] : event.pathParameters.proxy.split('/');
+  const pathParameters = (event.pathParameters == null || !event.pathParameters.proxy) ? [] : event.pathParameters.proxy.split('/');
   //** BOILERPLATE END **//
 
   switch (method) {
@@ -145,13 +131,13 @@ exports.handler = (event, context, callback) => {
           break;
 
         default:
-          return callback(null, utilities.ErrorResponse(event));
+          return callback(null, utilities.errorResponse(event));
           break;
       }
       break;
 
     default:
-      return callback(null, utilities.ErrorResponse(event));
+      return callback(null, utilities.errorResponse(event));
       break;    
   }
 

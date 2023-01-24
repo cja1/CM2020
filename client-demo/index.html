@@ -26,7 +26,7 @@
     <form>
       <div class="pl-row">
         <div class="pl-col-md-4"></div>
-         <div class="pl-col-md-2">
+        <div class="pl-col-md-2">
           <button type="submit" class="pl-button full" id="createGame">Create Game</button>
         </div>
         <div class="pl-col-md-2">
@@ -34,6 +34,25 @@
         </div>
         <div class="pl-col-md-4"></div>
       </div>
+      <div class="pl-row" style="margin-top: 50px;">
+        <div class="pl-col-md-4"></div>
+        <div class="pl-col-md-2">
+          <input type="text" placeholder="Code" id='joinCode'>
+        </div>
+        <div class="pl-col-md-2">
+          <button type="submit" class="pl-button full" id="joinGame">Join Game</button>
+        </div>
+        <div class="pl-col-md-4"></div>
+      </div>
+
+      <div class="pl-row">
+        <div class="pl-col-md-4"></div>
+        <div class="pl-col-md-8">
+          <p id='joinGameSuccess' style="color: green; display: none;">Successfully joined game</p>
+          <p id='joinGameFail' style="color: red; display: none;">Failed to join game</p>
+        </div>
+      </div>
+
     </form>
   </section>
 </body>
@@ -64,6 +83,7 @@ function getDeviceUUID() {
 }
 
 function createGame() {
+  $('#createGame').addClass('loading');
   $.ajax({
     type: 'POST',
     url: API_ENDPOINT + '/games',
@@ -71,15 +91,66 @@ function createGame() {
       xhr.setRequestHeader('Authorization', 'Bearer ' + getDeviceUUID());
     },
     success: function(result) {
+      $('#createGame').removeClass('loading');
       $('#code').val(result.code);
+    },
+    error: function(err) {
+      $('#createGame').removeClass('loading');
+      console.log(err);
     }
   });
 }
 
+function joinGame() {
+  $('#joinGame').addClass('loading');
+  $.ajax({
+    type: 'POST',
+    url: API_ENDPOINT + '/games/' + $('#joinCode').val() + '/players',
+    beforeSend: function (xhr) {
+      xhr.setRequestHeader('Authorization', 'Bearer ' + getDeviceUUID());
+    },
+    success: function(result) {
+      $('#joinGame').removeClass('loading');
+      $('#joinGameSuccess').show();
+      console.log(result);
+    },
+    error: function(err) {
+      $('#joinGame').removeClass('loading');
+      if ('responseJSON' in err) {
+        $('#joinGameFail').html(err.responseJSON.msg);
+      }
+      else {
+        $('#joinGameFail').html('Unable to join game');
+      }
+      $('#joinGameFail').show();
+      console.log(err);
+    }
+  });
+}
+
+function hideMessages() {
+  $('#joinGameSuccess').hide();
+  $('#joinGameFail').hide();
+}
+
 $('#createGame').on('click', function(event) {
+  hideMessages();
   createGame();
   event.preventDefault();
 });
+
+$('#joinGame').on('click', function(event) {
+  hideMessages();
+  if ($('#joinCode').val().trim().length == 0) {
+    $('#joinGameFail').html('Please enter a game code');
+    $('#joinGameFail').show();
+  }
+  else {
+    joinGame();
+  }
+  event.preventDefault();
+});
+
 
 </script>
 

@@ -383,9 +383,15 @@ exports.handler = (event, context, callback) => {
   })
   .then(function(user) {
     if (user == null) {
-      //Create
-      //TODO: Need better logic here: only create user when POST to /games or /games/<code>/players
-      return models.User.create({ deviceUUID: uuid });
+      //User doesn't exist. Create user if request is POST on /games or POST on /games/{code}/players
+      if ((method == 'post') && (apiGatewayArnTmp[3].toLowerCase() == 'games')
+        && ((apiGatewayArnTmp.length == 4) || ((apiGatewayArnTmp.length == 6) && (apiGatewayArnTmp[5].toLowerCase() == 'players')))) {
+        //Create
+        return models.User.create({ deviceUUID: uuid });
+      }
+      else {
+        return callback('Unauthorized');
+      }
     }
     return Promise.resolve(user);
   })
@@ -394,8 +400,7 @@ exports.handler = (event, context, callback) => {
     console.log('Authorised access for user id: ' + principalId);
 
     //Define allowed methods and endpoints
-    //This needs expanding!
-    const rps = { 'games': 'POST' };
+    const rps = { 'games': 'POST', 'games/*': ['POST', 'GET'] };
 
     const authResponse = CreateAuthResponse(principalId, awsAccountId, apiOptions, rps);
     return callback(null, authResponse);
