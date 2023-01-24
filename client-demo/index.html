@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Sequence Online Demo Page</title>
+  <link rel="stylesheet" href="css/plain.min.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Sequence Online Demo Page">
+  <meta name="author" content="Team 61">
+  <style type="text/css">
+    .header {
+      min-height: 300px;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header d-flex align-items-center">
+    <div class="pl-container text-center">
+      <h1 class="title">Sequence Online Demo Page</h1>
+      <h5 class="subtitle">Demonstrates basic API requests and game state changes</h5>
+    </div>
+  </header>
+
+  <section class="pl-container pl-container-small docs-section demo-pd">
+    <form>
+      <div class="pl-row">
+        <div class="pl-col-md-4"></div>
+         <div class="pl-col-md-2">
+          <button type="submit" class="pl-button full" id="createGame">Create Game</button>
+        </div>
+        <div class="pl-col-md-2">
+          <input type="text" placeholder="Code" id='code'>
+        </div>
+        <div class="pl-col-md-4"></div>
+      </div>
+    </form>
+  </section>
+</body>
+
+<!-- JQuery -->
+<script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+
+<script>
+
+const API_ENDPOINT = 'https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod';
+
+//Generate a UIUID: https://stackoverflow.com/questions/105034/how-do-i-create-a-guid-uuid
+function uuidv4() {
+  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+  );
+}
+
+function getDeviceUUID() {
+  //Get this device's UUID from localStorage if set. If not, create.
+  if (localStorage.getItem('deviceUUID') !== null) {
+    return localStorage.getItem('deviceUUID');
+  }
+  //Create and save
+  const deviceUUID = uuidv4();
+  localStorage.setItem('deviceUUID', deviceUUID);
+  return deviceUUID;
+}
+
+function createGame() {
+  $.ajax({
+    type: 'POST',
+    url: API_ENDPOINT + '/games',
+    beforeSend: function (xhr) {
+      xhr.setRequestHeader('Authorization', 'Bearer ' + getDeviceUUID());
+    },
+    success: function(result) {
+      $('#code').val(result.code);
+    }
+  });
+}
+
+$('#createGame').on('click', function(event) {
+  createGame();
+  event.preventDefault();
+});
+
+</script>
+
+
+
+</html>
