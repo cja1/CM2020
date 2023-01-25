@@ -15,7 +15,7 @@ var principalId;
  *     - Games
  *     summary: Join a game
  *     operationId: Join a game
- *.    parameters:
+ *     parameters:
  *       - name: code
  *         in: path
  *         description: The unique 4 character code for this game

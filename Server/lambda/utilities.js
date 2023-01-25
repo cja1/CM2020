@@ -68,7 +68,6 @@ function isValidGameCode(str) {
 }
 
 module.exports = {
-  GAME_CODE_LENGTH: GAME_CODE_LENGTH,
   okResponse: okResponse,
   okEmptyResponse: okEmptyResponse,
   errorResponse: errorResponse,

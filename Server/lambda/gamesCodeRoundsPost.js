@@ -6,10 +6,33 @@ const utilities = require(__dirname + '/utilities.js');
 
 var principalId;
 
-
 /**
  * @swagger
  *
+ * /games/{code}/rounds:
+ *   post:
+ *     tags:
+ *     - Games
+ *     summary: Play a round in a game. NOT IMPLEMENTED YET. NEED TO PASS THE CARD IN THE POST BODY.
+ *     operationId: Play a round NOT LIVE
+ *     parameters:
+ *       - name: code
+ *         in: path
+ *         description: The unique 4 character code for this game
+ *         required: true
+ *         schema:
+ *           type: string
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       204:
+ *         description: successful operation
+ *       401:
+ *         description: unauthorised - invalid API token
+ *       404:
+ *         description: game not found
+ *       422:
+ *         description: unprocessable
  */
 
 //************************************
@@ -17,6 +40,18 @@ var principalId;
 //************************************
 function postRound(event, callback) {
 
+  //STEPS
+  /*
+  -is this player in the game?
+  - is it this player's turn?
+  - do they have the card they are playing?
+  - is the move valid?
+  - have they won?
+
+  ...
+  - update board state
+  - return success
+  */
   //TODO: implement this
   callback(null, utilities.errorResponse(event));
 }

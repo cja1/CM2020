@@ -6,10 +6,33 @@ const utilities = require(__dirname + '/utilities.js');
 
 var principalId;
 
-
 /**
  * @swagger
  *
+ * /games/{code}:
+ *   get:
+ *     tags:
+ *     - Games
+ *     summary: Get the game status for this player. NOT IMPLEMENTED YET.
+ *     operationId: Get game status NOT LIVE
+ *     parameters:
+ *       - name: code
+ *         in: path
+ *         description: The unique 4 character code for this game
+ *         required: true
+ *         schema:
+ *           type: string
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       204:
+ *         description: successful operation
+ *       401:
+ *         description: unauthorised - invalid API token
+ *       404:
+ *         description: game not found
+ *       422:
+ *         description: unprocessable
  */
 
 //************************************
