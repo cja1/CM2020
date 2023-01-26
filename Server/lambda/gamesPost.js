@@ -13,7 +13,7 @@ var principalId;
  *   post:
  *     tags:
  *     - Games
- *     summary: Create a new game
+ *     summary: Create a new game. This request returns the newly created game code like 'XY89'. This code is passed to the other player allowing them to join the game by POSTing to the /games/{code}/players endpoint.
  *     operationId: Create a game
  *     security:
  *       - bearerAuth: []
@@ -38,10 +38,10 @@ var principalId;
 //************************************
 function postGame(event, callback) {
 
-  //Set isActive to false for any game this player is in - either as player 1 or player 2
+  //Set status to 'ended' for any game this player is in - either as player 1 or player 2
   models.Game.update(
-    { isActive: false },
-    { where: { [Op.and]: [ { isActive: true }, { [Op.or]: [ { Player1Id: principalId }, { Player2Id: principalId } ] } ] } }
+    { status: 'ended' },
+    { where: { [Op.and]: [ { status: { [Op.in]: ['waitingForPlayers', 'active']} }, { [Op.or]: [ { Player1Id: principalId }, { Player2Id: principalId } ] } ] } }
   )
   .then(function() {
 
@@ -64,7 +64,7 @@ function postGame(event, callback) {
     //create game with player 1 as the originator
     const game = {
       code: utilities.generateGameCode(),
-      isActive: true,
+      status: 'waitingForPlayers',
       cardsP1: cardsP1.join(','),
       cardsP2: cardsP2.join(','),
       cards: shuffled.join(','),
@@ -99,13 +99,10 @@ function createPack() {
 }
 
 function generateEmptyBoardState() {
-  //return a 10x10 array of blanks - representing empty board state
+  //return a 100 array of blanks - representing empty board state
   var state = [];
-  for (var i = 0; i < 10; i++) {
+  for (var i = 0; i < 100; i++) {
     state.push([]);
-    for (var j = 0; j < 10; j++) {
-      state[i].push('');
-    }
   }
   return state;
 }

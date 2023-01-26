@@ -387,7 +387,7 @@ exports.handler = (event, context, callback) => {
       if ((method == 'post') && (apiGatewayArnTmp[3].toLowerCase() == 'games')
         && ((apiGatewayArnTmp.length == 4) || ((apiGatewayArnTmp.length == 6) && (apiGatewayArnTmp[5].toLowerCase() == 'players')))) {
         //Create
-        return models.User.create({ deviceUUID: uuid });
+        return models.User.create({ deviceUUID: uuid, name: utilities.randomPlayerName() });
       }
       else {
         return callback('Unauthorized');

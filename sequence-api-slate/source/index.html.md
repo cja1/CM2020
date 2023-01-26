@@ -37,17 +37,18 @@ Base URLs:
 
 <h1 id="sequence-api-games">Games</h1>
 
-The /games endpoint is for main endpoint used for creating a new game, joining an existing game, playing a round and getting the game state.
+The /games endpoint is the main endpoint used for creating a new game, joining an existing game, playing a round and getting the game state.<br/><br/>The expected order of events is:<ul><li>A player POSTs to the /games endpoint to create a new game. They receive a 4-digit game code. They pass this to the second player. The game status is "waitingForPlayers".</li><li>The second player POSTs to the /games/{code}/players endpoint to join the game. Now the game status is "active".</li><li>Turn-by-turn, each players POSTs to the /games/{code}/rounds endpoint with the card they want to play and the board position they want to play it. This continues until the game is won.</li><li>When the game is won the game status change to "ended"</li><li>At any time a player can get the game state by calling GET on /games/{code} endpoint. This returns the current game state.</li></ul>
 
-## Get game status NOT LIVE
+## Get game state
 
-<a id="opIdGet game status NOT LIVE"></a>
+<a id="opIdGet game state"></a>
 
 > Code samples
 
 ```shell
 # You can also use wget
 curl -X GET https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code} \
+  -H 'Accept: application/json' \
   -H 'Authorization: Bearer {access-token}'
 
 ```
@@ -55,6 +56,7 @@ curl -X GET https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{c
 ```javascript
 
 const headers = {
+  'Accept':'application/json',
   'Authorization':'Bearer {access-token}'
 };
 
@@ -78,6 +80,7 @@ fetch('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}'
 require 'vendor/autoload.php';
 
 $headers = array(
+    'Accept' => 'application/json',
     'Authorization' => 'Bearer {access-token}',
 );
 
@@ -106,6 +109,7 @@ try {
 ```python
 import requests
 headers = {
+  'Accept': 'application/json',
   'Authorization': 'Bearer {access-token}'
 }
 
@@ -120,6 +124,7 @@ require 'rest-client'
 require 'json'
 
 headers = {
+  'Accept' => 'application/json',
   'Authorization' => 'Bearer {access-token}'
 }
 
@@ -142,6 +147,7 @@ import (
 func main() {
 
     headers := map[string][]string{
+        "Accept": []string{"application/json"},
         "Authorization": []string{"Bearer {access-token}"},
     }
 
@@ -175,22 +181,58 @@ System.out.println(response.toString());
 
 `GET /games/{code}`
 
-*Get the game status for this player. NOT IMPLEMENTED YET.*
+*Get the state of this game. Always returns 'status' and 'players' properties. Other properties depend on game 'status'. If 'status' is 'waitingForPlayers' then no additional properties sent. If 'status' is 'active' then also returns 'nextPlayer', 'boardState' and 'cards' properties. If 'status' is 'ended' then also returns 'winner' and 'boardState' properties.*
 
-<h3 id="get-game-status-not-live-parameters">Parameters</h3>
+<h3 id="get-game-state-parameters">Parameters</h3>
 
 |Name|In|Type|Required|Description|
 |---|---|---|---|---|
 |code|path|string|true|The unique 4 character code for this game|
 
-<h3 id="get-game-status-not-live-responses">Responses</h3>
+> Example responses
+
+> 200 Response
+
+```json
+{
+  "status": "active",
+  "players": [
+    {
+      "name": "Player12345",
+      "isMe": true
+    }
+  ],
+  "cards": [
+    "A|S",
+    "10|H",
+    "2|C"
+  ],
+  "nextPlayer": 1,
+  "boardState": [
+    [
+      "",
+      "",
+      "",
+      "p1",
+      "p2",
+      "",
+      "p1",
+      "",
+      "",
+      ""
+    ]
+  ],
+  "winner": 2
+}
+```
+
+<h3 id="get-game-state-responses">Responses</h3>
 
 |Status|Meaning|Description|Schema|
 |---|---|---|---|
-|204|[No Content](https://tools.ietf.org/html/rfc7231#section-6.3.5)|successful operation|None|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|successful operation|[GameState](#schemagamestate)|
 |401|[Unauthorized](https://tools.ietf.org/html/rfc7235#section-3.1)|unauthorised - invalid API token|None|
 |404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|game not found|None|
-|422|[Unprocessable Entity](https://tools.ietf.org/html/rfc2518#section-10.3)|unprocessable|None|
 
 <aside class="warning">
 To perform this operation, you must be authenticated by means of one of the following methods:
@@ -333,7 +375,7 @@ System.out.println(response.toString());
 
 `POST /games/{code}/players`
 
-*Join a game*
+*Join a game. The second player joins a game by POSTing to the /games/{code}/players endpoint, where {code} is the 4 digit game code received by the player who created the game.*
 
 <h3 id="join-a-game-parameters">Parameters</h3>
 
@@ -656,7 +698,7 @@ System.out.println(response.toString());
 
 `POST /games`
 
-*Create a new game*
+*Create a new game. This request returns the newly created game code like 'XY89'. This code is passed to the other player allowing them to join the game by POSTing to the /games/{code}/players endpoint.*
 
 > Example responses
 
@@ -687,4 +729,121 @@ Status Code **200**
 To perform this operation, you must be authenticated by means of one of the following methods:
 bearerAuth
 </aside>
+
+# Schemas
+
+<h2 id="tocS_Player">Player</h2>
+<!-- backwards compatibility -->
+<a id="schemaplayer"></a>
+<a id="schema_Player"></a>
+<a id="tocSplayer"></a>
+<a id="tocsplayer"></a>
+
+```json
+{
+  "name": "Player12345",
+  "isMe": true
+}
+
+```
+
+Player information
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|name|string|false|none|The name of the player. Currently this is set to a random player name when the player is created, format 'PlayerXXXXX' where 'X' is a 0-9 random digit.|
+|isMe|boolean|false|none|Flag indicating if this player is the player making the request|
+
+<h2 id="tocS_BoardRow">BoardRow</h2>
+<!-- backwards compatibility -->
+<a id="schemaboardrow"></a>
+<a id="schema_BoardRow"></a>
+<a id="tocSboardrow"></a>
+<a id="tocsboardrow"></a>
+
+```json
+[
+  "",
+  "",
+  "",
+  "p1",
+  "p2",
+  "",
+  "p1",
+  "",
+  "",
+  ""
+]
+
+```
+
+The state of one row on the board as a 10 element array of strings. The string is blank if no-one owns the cell, 'p1' if Player 1 owns it, or 'p2' if Player 2 owns it.
+
+### Properties
+
+*None*
+
+<h2 id="tocS_GameState">GameState</h2>
+<!-- backwards compatibility -->
+<a id="schemagamestate"></a>
+<a id="schema_GameState"></a>
+<a id="tocSgamestate"></a>
+<a id="tocsgamestate"></a>
+
+```json
+{
+  "status": "active",
+  "players": [
+    {
+      "name": "Player12345",
+      "isMe": true
+    }
+  ],
+  "cards": [
+    "A|S",
+    "10|H",
+    "2|C"
+  ],
+  "nextPlayer": 1,
+  "boardState": [
+    [
+      "",
+      "",
+      "",
+      "p1",
+      "p2",
+      "",
+      "p1",
+      "",
+      "",
+      ""
+    ]
+  ],
+  "winner": 2
+}
+
+```
+
+Game state information. Always returns status and players. Other properties depend on game status. If 'waitingForPlayers' then no additional properties. If 'active' then also returns 'nextPlayer', 'boardState' and 'cards'. If 'ended' then also returns 'winner' and 'boardState'.
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|status|string|true|none|The game status, one of waitingForPlayers, active or ended|
+|players|[[Player](#schemaplayer)]|true|none|The names of the players in this game. The first player is always the player who created the game.|
+|cards|[string]|false|none|The cards in this player's hand as an array of strings. Card first part is the value, second part is the suit. Separated by a | as a delimiter.|
+|nextPlayer|int32|false|none|The number of the next player. 1 = Player 1, 2 = Player 2.|
+|boardState|[[BoardRow](#schemaboardrow)]|false|none|The current state of the game board - same for each player - sent as a 10 row array of BoardRow objects.|
+|winner|int32|false|none|The number of the player who won. 1 = Player 1, 2 = Player 2. Note that 0 indicates that no player won - ie game was cancelled before a Player won the game.|
+
+#### Enumerated Values
+
+|Property|Value|
+|---|---|
+|status|waitingForPlayers|
+|status|active|
+|status|ended|
 

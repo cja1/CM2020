@@ -34,6 +34,7 @@
         </div>
         <div class="pl-col-md-4"></div>
       </div>
+
       <div class="pl-row" style="margin-top: 50px;">
         <div class="pl-col-md-4"></div>
         <div class="pl-col-md-2">
@@ -44,14 +45,34 @@
         </div>
         <div class="pl-col-md-4"></div>
       </div>
-
       <div class="pl-row">
         <div class="pl-col-md-4"></div>
         <div class="pl-col-md-8">
           <p id='joinGameSuccess' style="color: green; display: none;">Successfully joined game</p>
-          <p id='joinGameFail' style="color: red; display: none;">Failed to join game</p>
+          <p id='joinGameFail' style="color: red; display: none;"></p>
         </div>
       </div>
+
+      <div class="pl-row" style="margin-top: 50px;">
+        <div class="pl-col-md-2"></div>
+        <div class="pl-col-md-2">
+          <input type="text" placeholder="Code" id='getCode'>
+        </div>
+        <div class="pl-col-md-2">
+          <button type="submit" class="pl-button full" id="getGame">Get State</button>
+        </div>
+        <div class="pl-col-md-6">
+          <textarea id='gameState'></textarea>
+        </div>
+      </div>
+      <div class="pl-row">
+        <div class="pl-col-md-4"></div>
+        <div class="pl-col-md-8">
+          <p id='getGameSuccess' style="color: green; display: none;">Successfully retrieved game state</p>
+          <p id='getGameFail' style="color: red; display: none;"></p>
+        </div>
+      </div>
+
 
     </form>
   </section>
@@ -112,7 +133,6 @@ function joinGame() {
     success: function(result) {
       $('#joinGame').removeClass('loading');
       $('#joinGameSuccess').show();
-      console.log(result);
     },
     error: function(err) {
       $('#joinGame').removeClass('loading');
@@ -128,9 +148,41 @@ function joinGame() {
   });
 }
 
+function getGame() {
+  $('#getGame').addClass('loading');
+  $('#gameState').val('');
+
+  $.ajax({
+    type: 'GET',
+    url: API_ENDPOINT + '/games/' + $('#getCode').val(),
+    beforeSend: function (xhr) {
+      xhr.setRequestHeader('Authorization', 'Bearer ' + getDeviceUUID());
+    },
+    success: function(result) {
+      $('#getGame').removeClass('loading');
+      $('#getGameSuccess').show();
+      //Show JSON object as string with identation
+      $('#gameState').val(JSON.stringify(result, undefined, 4));
+    },
+    error: function(err) {
+      $('#getGame').removeClass('loading');
+      if ('responseJSON' in err) {
+        $('#getGameFail').html(err.responseJSON.msg);
+      }
+      else {
+        $('#getGameFail').html('Unable to get game state');
+      }
+      $('#getGameFail').show();
+      console.log(err);
+    }
+  });
+}
+
 function hideMessages() {
   $('#joinGameSuccess').hide();
   $('#joinGameFail').hide();
+  $('#getGameSuccess').hide();
+  $('#getGameFail').hide();
 }
 
 $('#createGame').on('click', function(event) {
@@ -147,6 +199,18 @@ $('#joinGame').on('click', function(event) {
   }
   else {
     joinGame();
+  }
+  event.preventDefault();
+});
+
+$('#getGame').on('click', function(event) {
+  hideMessages();
+  if ($('#getCode').val().trim().length == 0) {
+    $('#getGameFail').html('Please enter a game code');
+    $('#getGameFail').show();
+  }
+  else {
+    getGame();
   }
   event.preventDefault();
 });

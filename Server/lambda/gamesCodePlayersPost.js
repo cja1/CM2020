@@ -13,7 +13,7 @@ var principalId;
  *   post:
  *     tags:
  *     - Games
- *     summary: Join a game
+ *     summary: Join a game. The second player joins a game by POSTing to the /games/{code}/players endpoint, where {code} is the 4 digit game code received by the player who created the game.
  *     operationId: Join a game
  *     parameters:
  *       - name: code
@@ -46,10 +46,10 @@ function postPlayer(event, callback) {
   const code = event.pathParameters.code;
 
   models.Game.findOne({
-    attributes: ['id', 'isActive', 'Player1Id', 'Player2Id'],
+    attributes: ['id', 'status', 'Player1Id', 'Player2Id'],
     where: { [Op.and]: [
       { code: code.toUpperCase() },
-      { isActive: true }
+      { status: { [Op.in]: ['waitingForPlayers', 'active'] } }
     ]}
   })
   .then(function(game) {
@@ -57,21 +57,21 @@ function postPlayer(event, callback) {
     if (game == null) {
       var error = new Error('Game not found: ' + code); error.status = 404; throw(error);
     }
-    if (game.Player2Id != null) {
-      var error = new Error('This game is already has 2 players'); error.status = 409; throw(error);      
+    if (game.status == 'active') {
+      var error = new Error('This game already has 2 players'); error.status = 409; throw(error);      
     }
     if (game.Player1Id == principalId) {
       var error = new Error('Game created by this player - cannot be joined a second time'); error.status = 422; throw(error);      
     }
-    //add this player to the game
-    return game.update({ Player2Id: principalId })
+    //add this player to the game and set status to 'active'
+    return game.update({ status: 'active', Player2Id: principalId })
   })
   .then(function(game) {
-    //Set isActive to false for any game this player is in - either as player 1 or player 2 - apart from the current game
+    //Set status to 'ended' for any game this player is in - either as player 1 or player 2 - apart from the current game
     return models.Game.update(
-      { isActive: false },
+      { status: 'ended' },
       { where: { [Op.and]: [
-        { isActive: true },
+        { status: { [Op.in]: ['waitingForPlayers', 'active'] } },
         { [Op.or]: [ { Player1Id: principalId }, { Player2Id: principalId } ] },
         { id: { [Op.ne]: game.id } }
       ]}}

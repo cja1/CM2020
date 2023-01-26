@@ -67,6 +67,31 @@ function isValidGameCode(str) {
   return str.match(/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]+$/) !== null;
 }
 
+//Convert boardState string into 2d array
+function createBoardStateArray(boardStateStr) {
+  //boardStateStr is a comma-separated string with 100 elements
+  const boardStateArr = boardStateStr.split(','); 
+
+  var out = [];
+  for (var i = 0; i < 100; i++) {
+    if (i % 10 == 0) {
+      //Add row every 10
+      out.push([]);
+    }
+    out[out.length - 1].push(boardStateArr[i]);
+  }
+  return out;
+}
+
+//Create a random player name like Player12345
+function randomPlayerName() {
+  var name = 'Player';
+  name += Array(5).fill('0123456789').map(function(x) {
+    return x[Math.floor(Math.random() * x.length)];
+  }).join('');
+  return name;
+}
+
 module.exports = {
   okResponse: okResponse,
   okEmptyResponse: okEmptyResponse,
@@ -74,4 +99,6 @@ module.exports = {
   parseJson: parseJson,
   generateGameCode: generateGameCode,
   isValidGameCode: isValidGameCode,
+  createBoardStateArray: createBoardStateArray,
+  randomPlayerName: randomPlayerName
 };

@@ -5,8 +5,8 @@ module.exports = function(sequelize, DataTypes) {
     code: {
       type: DataTypes.STRING
     },
-    isActive: {
-      type: DataTypes.BOOLEAN,
+    status: {
+      type: DataTypes.ENUM('waitingForPlayers', 'active', 'ended'),
     },
     cardsP1: {
       type: DataTypes.STRING(1024)
@@ -21,6 +21,9 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER
     },
     nextPlayer: {
+      type: DataTypes.INTEGER
+    },
+    winner: {
       type: DataTypes.INTEGER
     },
     boardState: {

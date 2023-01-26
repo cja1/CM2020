@@ -13,7 +13,7 @@
   "tags": [
     {
       "name": "Games",
-      "description": "The /games endpoint is for main endpoint used for creating a new game, joining an existing game, playing a round and getting the game state."
+      "description": "The /games endpoint is the main endpoint used for creating a new game, joining an existing game, playing a round and getting the game state.<br/><br/>The expected order of events is:<ul><li>A player POSTs to the /games endpoint to create a new game. They receive a 4-digit game code. They pass this to the second player. The game status is \"waitingForPlayers\".</li><li>The second player POSTs to the /games/{code}/players endpoint to join the game. Now the game status is \"active\".</li><li>Turn-by-turn, each players POSTs to the /games/{code}/rounds endpoint with the card they want to play and the board position they want to play it. This continues until the game is won.</li><li>When the game is won the game status change to \"ended\"</li><li>At any time a player can get the game state by calling GET on /games/{code} endpoint. This returns the current game state.</li></ul>"
     }
   ],
   "components": {
@@ -23,6 +23,99 @@
         "type": "http",
         "scheme": "bearer"
       }
+    },
+    "schemas": {
+      "Player": {
+        "type": "object",
+        "description": "Player information",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the player. Currently this is set to a random player name when the player is created, format 'PlayerXXXXX' where 'X' is a 0-9 random digit.",
+            "example": "Player12345"
+          },
+          "isMe": {
+            "type": "boolean",
+            "description": "Flag indicating if this player is the player making the request",
+            "example": true
+          }
+        }
+      },
+      "BoardRow": {
+        "type": "array",
+        "description": "The state of one row on the board as a 10 element array of strings. The string is blank if no-one owns the cell, 'p1' if Player 1 owns it, or 'p2' if Player 2 owns it.",
+        "example": [
+          "",
+          "",
+          "",
+          "p1",
+          "p2",
+          "",
+          "p1",
+          "",
+          "",
+          ""
+        ],
+        "items": {
+          "type": "string"
+        }
+      },
+      "GameState": {
+        "type": "object",
+        "description": "Game state information. Always returns status and players. Other properties depend on game status. If 'waitingForPlayers' then no additional properties. If 'active' then also returns 'nextPlayer', 'boardState' and 'cards'. If 'ended' then also returns 'winner' and 'boardState'.",
+        "required": [
+          "status",
+          "players"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "waitingForPlayers",
+              "active",
+              "ended"
+            ],
+            "description": "The game status, one of waitingForPlayers, active or ended",
+            "example": "active"
+          },
+          "players": {
+            "type": "array",
+            "description": "The names of the players in this game. The first player is always the player who created the game.",
+            "items": {
+              "$ref": "#/components/schemas/Player"
+            }
+          },
+          "cards": {
+            "type": "array",
+            "description": "The cards in this player's hand as an array of strings. Card first part is the value, second part is the suit. Separated by a | as a delimiter.",
+            "example": [
+              "A|S",
+              "10|H",
+              "2|C"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "nextPlayer": {
+            "type": "int32",
+            "description": "The number of the next player. 1 = Player 1, 2 = Player 2.",
+            "example": 1
+          },
+          "boardState": {
+            "type": "array",
+            "description": "The current state of the game board - same for each player - sent as a 10 row array of BoardRow objects.",
+            "items": {
+              "$ref": "#/components/schemas/BoardRow"
+            }
+          },
+          "winner": {
+            "type": "int32",
+            "description": "The number of the player who won. 1 = Player 1, 2 = Player 2. Note that 0 indicates that no player won - ie game was cancelled before a Player won the game.",
+            "example": 2
+          }
+        }
+      }
     }
   },
   "paths": {
@@ -31,8 +124,8 @@
         "tags": [
           "Games"
         ],
-        "summary": "Get the game status for this player. NOT IMPLEMENTED YET.",
-        "operationId": "Get game status NOT LIVE",
+        "summary": "Get the state of this game. Always returns 'status' and 'players' properties. Other properties depend on game 'status'. If 'status' is 'waitingForPlayers' then no additional properties sent. If 'status' is 'active' then also returns 'nextPlayer', 'boardState' and 'cards' properties. If 'status' is 'ended' then also returns 'winner' and 'boardState' properties.",
+        "operationId": "Get game state",
         "parameters": [
           {
             "name": "code",
@@ -50,17 +143,21 @@
           }
         ],
         "responses": {
-          "204": {
-            "description": "successful operation"
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameState"
+                }
+              }
+            }
           },
           "401": {
             "description": "unauthorised - invalid API token"
           },
           "404": {
             "description": "game not found"
-          },
-          "422": {
-            "description": "unprocessable"
           }
         }
       }
@@ -70,7 +167,7 @@
         "tags": [
           "Games"
         ],
-        "summary": "Join a game",
+        "summary": "Join a game. The second player joins a game by POSTing to the /games/{code}/players endpoint, where {code} is the 4 digit game code received by the player who created the game.",
         "operationId": "Join a game",
         "parameters": [
           {
@@ -151,7 +248,7 @@
         "tags": [
           "Games"
         ],
-        "summary": "Create a new game",
+        "summary": "Create a new game. This request returns the newly created game code like 'XY89'. This code is passed to the other player allowing them to join the game by POSTing to the /games/{code}/players endpoint.",
         "operationId": "Create a game",
         "security": [
           {
