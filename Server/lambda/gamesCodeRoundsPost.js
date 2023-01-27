@@ -64,14 +64,14 @@ function postRound(event, callback) {
   const code = event.pathParameters.code;
 
   //validate the body
-  const jsonBody = utilities.ParseJson(event.body);  //deals with nulls and JSON parse errors
+  const jsonBody = utilities.parseJson(event.body);  //deals with nulls and JSON parse errors
 
   //Check expected body parameters are set
   const params = ['card', 'moveRow', 'moveCol'];
   for (var i = 0; i < params.length; i++) {
     if (!(params[i] in jsonBody)) {
       var error = new Error('Parameter "' + params[i] + '" missing'); error.status = 422;
-      return callback(null, utilities.ErrorResponse(event, error));      
+      return callback(null, utilities.errorResponse(event, error));      
     }
   }
 
@@ -79,30 +79,30 @@ function postRound(event, callback) {
   //Card
   if (!isValidCard(jsonBody['card'])) {
     var error = new Error('Card "' + jsonBody['card'] + '" is not a valid card'); error.status = 422;
-    return callback(null, utilities.ErrorResponse(event, error));          
+    return callback(null, utilities.errorResponse(event, error));          
   }
   const card = jsonBody['card'];
 
   //moveRow. Note: supports both int and string versions. Use + '' to coerce numbers to string.
   if (!validator.isInt(jsonBody['moveRow'] + '')) {
     var error = new Error('moveRow "' + jsonBody['moveRow'] + '" is not a valid integer'); error.status = 422;
-    return callback(null, utilities.ErrorResponse(event, error));          
+    return callback(null, utilities.errorResponse(event, error));          
   }
   const moveRow = parseInt(jsonBody['moveRow'] + '');
-  if (moveRow < 0 ! moveRow > 9) {
+  if (moveRow < 0 || moveRow > 9) {
     var error = new Error('moveRow "' + moveRow + '" must be between 0 and 9'); error.status = 422;
-    return callback(null, utilities.ErrorResponse(event, error));              
+    return callback(null, utilities.errorResponse(event, error));              
   }
 
   //moveCol  
   if (!validator.isInt(jsonBody['moveCol'] + '')) {
     var error = new Error('moveCol "' + jsonBody['moveCol'] + '" is not a valid integer'); error.status = 422;
-    return callback(null, utilities.ErrorResponse(event, error));          
+    return callback(null, utilities.errorResponse(event, error));          
   }
   const moveCol = parseInt(jsonBody['moveCol'] + '');
-  if (moveCol < 0 ! moveCol > 9) {
+  if (moveCol < 0 || moveCol > 9) {
     var error = new Error('moveCol "' + moveCol + '" must be between 0 and 9'); error.status = 422;
-    return callback(null, utilities.ErrorResponse(event, error));              
+    return callback(null, utilities.errorResponse(event, error));              
   }
 
   //Get the game: with this code, where active, and with the requestor as Player1 or Player2
@@ -121,16 +121,16 @@ function postRound(event, callback) {
 
     //Check this players turn
     if ((game.nextPlayer == 1) && (game.Player1Id != principalId)) {
-      var error = new Error('Not Player 1\'s turn'); error.status = 422; throw(error);      
+      var error = new Error('Not Player 2\'s turn'); error.status = 422; throw(error);      
     }
     if ((game.nextPlayer == 2) && (game.Player2Id != principalId)) {
-      var error = new Error('Not Player 2\'s turn'); error.status = 422; throw(error);      
+      var error = new Error('Not Player 1\'s turn'); error.status = 422; throw(error);      
     }
 
     //Check the player has this card in their hand
     const cardsPlayer = (game.nextPlayer == 1) ? game.cardsP1.split(',') : game.cardsP2.split(',');
     if (!cardsPlayer.includes(card)) {
-      var error = new Error('The card "' + card + '" is not in ' + ((game.nextPlayer == 1) ? 'Player 1' : 'Player 2') + '\'s hand'); error.status = 422; throw(error);            
+      var error = new Error('The card ' + card + ' is not in ' + ((game.nextPlayer == 1) ? 'Player 1' : 'Player 2') + '\'s hand'); error.status = 422; throw(error);            
     }
 
     //Check the move is valid
@@ -138,16 +138,16 @@ function postRound(event, callback) {
     const ret = validateMove(card, moveRow, moveCol, boardStateArray, game.nextPlayer);
     if (!ret.isValid) {
       //invalid move. ret.reason contains the explanation
-      var error = new Error('The card "' + card + '" can not be placed at row ' + moveRow + ', column ' + moveCol + ' Reason: ' + ret.reason); error.status = 422; throw(error);
+      var error = new Error('The card ' + card + ' can not be placed at row ' + moveRow + ', column ' + moveCol + '. Reason: ' + ret.reason); error.status = 422; throw(error);
     }
     //ret.boardStateArray contains the updated board state
-    const boardState = createBoardStateString(ret.boardStateArray);
+    const boardState = utilities.createBoardStateString(ret.boardStateArray);
 
     //Update cards for this player
     //Remove the card that was played...
-    var updatedPlayerCards = cardsPlayer.splice(cardsPlayer.indexOf(card), 1);;
+    cardsPlayer.splice(cardsPlayer.indexOf(card), 1);;
     //...and deal the next card to them
-    updatedPlayerCards.push(game.cards[game.cardPos]);
+    cardsPlayer.push(game.cards.split(',')[game.cardPos]);
 
     //Have they won?
     if (didWin(boardStateArray)) {
@@ -159,19 +159,22 @@ function postRound(event, callback) {
       var updateObj = { nextPlayer: (game.nextPlayer == 1) ? 2 : 1, boardState: boardState, cardPos: game.cardPos + 1 };
       //... and update the relevant player's cards too
       if (game.nextPlayer == 1) {
-        updateObj['cardsP1'] = updatedPlayerCards;
+        updateObj['cardsP1'] = cardsPlayer.join(',');
       }
       else {
-        updateObj['cardsP2'] = updatedPlayerCards;        
+        updateObj['cardsP2'] = cardsPlayer.join(',');
       }
       return game.update(updateObj);
     }
   })
   .then(function(game) {
+    console.log('Successfully played round', principalId, card, moveRow, moveCol);
     return callback(null, utilities.okEmptyResponse(event));
   }, function(err) {
+    console.log(err);
     return callback(null, utilities.errorResponse(event, err));
   }).catch(function (err) {
+    console.log(err);
     return callback(null, utilities.errorResponse(event, err));
   });
 }
@@ -195,7 +198,8 @@ function validateMove(card, moveRow, moveCol, boardStateArray, nextPlayer) {
     const bgWithCards = boardGameWithCards();
     if (bgWithCards[moveRow][moveCol] != card) {
       //the move is to an invalid cell
-      return { isValid: false, reason: 'The card played does not match the board card at this position' };
+      const playOptions = playOptionsForCard(card);
+      return { isValid: false, reason: 'The card does not match the board card at this position (' + bgWithCards[moveRow][moveCol] + '). The card ' + card + ' can be played at ' + playOptions.join(' and ') + '.'  };
     }
     if (boardStateArray[moveRow][moveCol] != '') {
       //the board position is already occupied
@@ -336,6 +340,20 @@ function boardGameWithCards() {
     ["10|S", "10|H", "Q|H", "K|H", "A|H", "2|C", "3|C", "4|C", "5|C", "6|C"],
     ["", "9|S", "8|S", "7|S", "6|S", "5|S", "4|S", "3|S", "2|S", ""],
   ];
+}
+
+//Return the places where this card can be played
+function playOptionsForCard(card) {
+  var out = [];
+  const bg = boardGameWithCards();
+  for (var i = 0; i < 10; i++) {
+    for (var j = 0; j < 10; j++) {
+      if (bg[i][j] == card) {
+        out.push('(' + i + ', ' + j + ')');
+      }
+    }
+  }
+  return out;
 }
 
 function isValidCard(card) {

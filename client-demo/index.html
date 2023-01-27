@@ -11,6 +11,11 @@
     .header {
       min-height: 300px;
     }
+    textarea {
+      font-size: 12px;
+      min-height: 800px;
+    }
+
   </style>
 </head>
 
@@ -54,15 +59,39 @@
       </div>
 
       <div class="pl-row" style="margin-top: 50px;">
+        <div class="pl-col-md-2">
+          <input type="text" placeholder="Code" id='roundCode'>
+        </div>
+        <div class="pl-col-md-2">
+          <input type="text" placeholder="Card" id='roundCard'>
+        </div>
+        <div class="pl-col-md-2">
+          <input type="text" placeholder="Row" id='roundRow'>
+        </div>
+        <div class="pl-col-md-2">
+          <input type="text" placeholder="Col" id='roundCol'>
+        </div>
+        <div class="pl-col-md-2">
+          <button type="submit" class="pl-button full" id="playRound">Play Round</button>
+        </div>
         <div class="pl-col-md-2"></div>
+      </div>
+      <div class="pl-row">
+        <div class="pl-col-md-12">
+          <p id='playRoundSuccess' style="color: green; display: none;">Successfully player round</p>
+          <p id='playRoundFail' style="color: red; display: none;"></p>
+        </div>
+      </div>
+
+      <div class="pl-row" style="margin-top: 50px;">
         <div class="pl-col-md-2">
           <input type="text" placeholder="Code" id='getCode'>
         </div>
         <div class="pl-col-md-2">
           <button type="submit" class="pl-button full" id="getGame">Get State</button>
         </div>
-        <div class="pl-col-md-6">
-          <textarea id='gameState'></textarea>
+        <div class="pl-col-md-8">
+          <textarea id='gameState' rows='10'></textarea>
         </div>
       </div>
       <div class="pl-row">
@@ -148,6 +177,40 @@ function joinGame() {
   });
 }
 
+function playRound() {
+  $('#playRound').addClass('loading');
+
+  const obj = { card: $('#roundCard').val(), moveRow: $('#roundRow').val(), moveCol: $('#roundCol').val() };
+
+  console.log(obj);
+
+  $.ajax({
+    type: 'POST',
+    url: API_ENDPOINT + '/games/' + $('#roundCode').val() + '/rounds',
+    data: JSON.stringify(obj),
+    contentType: 'application/json',
+    beforeSend: function (xhr) {
+      xhr.setRequestHeader('Authorization', 'Bearer ' + getDeviceUUID());
+    },
+    success: function(result) {
+      $('#playRound').removeClass('loading');
+      $('#playRoundSuccess').show();
+    },
+    error: function(err) {
+      $('#playRound').removeClass('loading');
+      if ('responseJSON' in err) {
+        $('#playRoundFail').html(err.responseJSON.msg);
+      }
+      else {
+        $('#playRoundFail').html('Unable to play round');
+      }
+      $('#playRoundFail').show();
+      console.log(err);
+    }
+  });
+}
+
+
 function getGame() {
   $('#getGame').addClass('loading');
   $('#gameState').val('');
@@ -183,6 +246,8 @@ function hideMessages() {
   $('#joinGameFail').hide();
   $('#getGameSuccess').hide();
   $('#getGameFail').hide();
+  $('#playRoundSuccess').hide();
+  $('#playRoundFail').hide();
 }
 
 $('#createGame').on('click', function(event) {
@@ -202,6 +267,19 @@ $('#joinGame').on('click', function(event) {
   }
   event.preventDefault();
 });
+
+$('#playRound').on('click', function(event) {
+  hideMessages();
+  if ($('#roundCode').val().trim().length == 0) {
+    $('#playRoundFail').html('Please enter a game code');
+    $('#playRoundFail').show();
+  }
+  else {
+    playRound();
+  }
+  event.preventDefault();
+});
+
 
 $('#getGame').on('click', function(event) {
   hideMessages();
