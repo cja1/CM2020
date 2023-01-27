@@ -70,7 +70,7 @@ function isValidGameCode(str) {
 //Convert boardState string into 2d array
 function createBoardStateArray(boardStateStr) {
   //boardStateStr is a comma-separated string with 100 elements
-  const boardStateArr = boardStateStr.split(','); 
+  const boardStateArray = boardStateStr.split(','); 
 
   var out = [];
   for (var i = 0; i < 100; i++) {
@@ -78,9 +78,19 @@ function createBoardStateArray(boardStateStr) {
       //Add row every 10
       out.push([]);
     }
-    out[out.length - 1].push(boardStateArr[i]);
+    out[out.length - 1].push(boardStateArray[i]);
   }
   return out;
+}
+
+function createBoardStateString(boardStateArray) {
+  var out = [];
+  for (var i = 0; i < 10; i++) {
+    for (var j = 0; j < 10; j++) {
+      out.push(boardStateArray[i][j]);
+    }
+  }
+  return out.join(',');
 }
 
 //Create a random player name like Player12345
@@ -100,5 +110,6 @@ module.exports = {
   generateGameCode: generateGameCode,
   isValidGameCode: isValidGameCode,
   createBoardStateArray: createBoardStateArray,
+  createBoardStateString: createBoardStateString,
   randomPlayerName: randomPlayerName
 };

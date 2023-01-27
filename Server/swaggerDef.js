@@ -19,5 +19,12 @@ module.exports = {
         scheme: 'bearer'
       }
     }
-  }
+  },
+  //"/Users/callen/Documents/Personal/CompSci/CM2020 ASP/CM2020/Server/lambda/*.js"
+  apis: [
+    '/Users/callen/Documents/Personal/CompSci/CM2020 ASP/CM2020/Server/lambda/gamesPost.js',
+    '/Users/callen/Documents/Personal/CompSci/CM2020 ASP/CM2020/Server/lambda/gamesCodePlayersPost.js',
+    '/Users/callen/Documents/Personal/CompSci/CM2020 ASP/CM2020/Server/lambda/gamesCodeRoundsPost.js',
+    '/Users/callen/Documents/Personal/CompSci/CM2020 ASP/CM2020/Server/lambda/gamesCodeGet.js',
+  ]
 };

@@ -472,6 +472,7 @@ html, body {
 
     &.warning {
       background-color: $aside-warning-bg;
+      display: none;
     }
 
     &.success {

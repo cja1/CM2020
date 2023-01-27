@@ -119,24 +119,13 @@
     }
   },
   "paths": {
-    "/games/{code}": {
-      "get": {
+    "/games": {
+      "post": {
         "tags": [
           "Games"
         ],
-        "summary": "Get the state of this game. Always returns 'status' and 'players' properties. Other properties depend on game 'status'. If 'status' is 'waitingForPlayers' then no additional properties sent. If 'status' is 'active' then also returns 'nextPlayer', 'boardState' and 'cards' properties. If 'status' is 'ended' then also returns 'winner' and 'boardState' properties.",
-        "operationId": "Get game state",
-        "parameters": [
-          {
-            "name": "code",
-            "in": "path",
-            "description": "The unique 4 character code for this game",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
+        "summary": "Create a new game. This request returns the newly created game code like 'XY89'. This code is passed to the other player allowing them to join the game by POSTing to the /games/{code}/players endpoint.",
+        "operationId": "Create a game",
         "security": [
           {
             "bearerAuth": []
@@ -148,16 +137,20 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GameState"
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "4 character alphanumeric game code - used to uniquely identify this game",
+                      "example": "AB12"
+                    }
+                  }
                 }
               }
             }
           },
           "401": {
-            "description": "unauthorised - invalid API token"
-          },
-          "404": {
-            "description": "game not found"
+            "description": "unauthorised - invalid Authorisation Bearer token"
           }
         }
       }
@@ -209,8 +202,40 @@
         "tags": [
           "Games"
         ],
-        "summary": "Play a round in a game. NOT IMPLEMENTED YET. NEED TO PASS THE CARD IN THE POST BODY.",
-        "operationId": "Play a round NOT LIVE",
+        "summary": "Play a round in a game. Players pass in the card they want to play from their hand together with the position on the board they want to play the card. If this is a valid move then the board state is updated and play moves to the other player. The business logic in this function makes various checks including <ul><li>Is it this player's turn?</li><li>Does the player have this card in their hand?</li><li>Is the move valid?</li></ul>",
+        "operationId": "Play a round",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "card",
+                  "moveRow",
+                  "moveCol"
+                ],
+                "properties": {
+                  "card": {
+                    "type": "string",
+                    "description": "The card this player wants to play",
+                    "example": "A|C"
+                  },
+                  "moveRow": {
+                    "type": "int32",
+                    "description": "The row number where the player wants to play this card, from 0 to 9",
+                    "example": 3
+                  },
+                  "moveCol": {
+                    "type": "int32",
+                    "description": "The column number where the player wants to play this card, from 0 to 9",
+                    "example": 7
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
         "parameters": [
           {
             "name": "code",
@@ -243,13 +268,24 @@
         }
       }
     },
-    "/games": {
-      "post": {
+    "/games/{code}": {
+      "get": {
         "tags": [
           "Games"
         ],
-        "summary": "Create a new game. This request returns the newly created game code like 'XY89'. This code is passed to the other player allowing them to join the game by POSTing to the /games/{code}/players endpoint.",
-        "operationId": "Create a game",
+        "summary": "Get the state of this game. Always returns 'status' and 'players' properties. Other properties depend on game 'status'. If 'status' is 'waitingForPlayers' then no additional properties sent. If 'status' is 'active' then also returns 'nextPlayer', 'boardState' and 'cards' properties. If 'status' is 'ended' then also returns 'winner' and 'boardState' properties.",
+        "operationId": "Get game state",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "description": "The unique 4 character code for this game",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "security": [
           {
             "bearerAuth": []
@@ -261,20 +297,16 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "string",
-                      "description": "4 character alphanumeric game code - used to uniquely identify this game",
-                      "example": "AB12"
-                    }
-                  }
+                  "$ref": "#/components/schemas/GameState"
                 }
               }
             }
           },
           "401": {
-            "description": "unauthorised - invalid Authorisation Bearer token"
+            "description": "unauthorised - invalid API token"
+          },
+          "404": {
+            "description": "game not found"
           }
         }
       }

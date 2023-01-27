@@ -159,7 +159,6 @@ function getGame(event, callback) {
   });
 }
 
-
 exports.handler = (event, context, callback) => {
 
   //** BOILERPLATE START **//

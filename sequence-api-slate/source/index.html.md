@@ -27,7 +27,7 @@ headingLevel: 2
 
 Welcome to the Sequence API documentation.<br/><br/>Developed for the UOL Computer Science Agile Software Development module by <b>Team 61</b> (T6G6).
 
-Base URLs:
+Base URL:
 
 * <a href="https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod">https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod</a>
 
@@ -38,6 +38,520 @@ Base URLs:
 <h1 id="sequence-api-games">Games</h1>
 
 The /games endpoint is the main endpoint used for creating a new game, joining an existing game, playing a round and getting the game state.<br/><br/>The expected order of events is:<ul><li>A player POSTs to the /games endpoint to create a new game. They receive a 4-digit game code. They pass this to the second player. The game status is "waitingForPlayers".</li><li>The second player POSTs to the /games/{code}/players endpoint to join the game. Now the game status is "active".</li><li>Turn-by-turn, each players POSTs to the /games/{code}/rounds endpoint with the card they want to play and the board position they want to play it. This continues until the game is won.</li><li>When the game is won the game status change to "ended"</li><li>At any time a player can get the game state by calling GET on /games/{code} endpoint. This returns the current game state.</li></ul>
+
+## Create a game
+
+<a id="opIdCreate a game"></a>
+
+> Code samples
+
+```shell
+# You can also use wget
+curl -X POST https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games \
+  -H 'Accept: application/json' \
+  -H 'Authorization: Bearer {access-token}'
+
+```
+
+```javascript
+
+const headers = {
+  'Accept':'application/json',
+  'Authorization':'Bearer {access-token}'
+};
+
+fetch('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games',
+{
+  method: 'POST',
+
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+
+```
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+$headers = array(
+    'Accept' => 'application/json',
+    'Authorization' => 'Bearer {access-token}',
+);
+
+$client = new \GuzzleHttp\Client();
+
+// Define array of request body.
+$request_body = array();
+
+try {
+    $response = $client->request('POST','https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games', array(
+        'headers' => $headers,
+        'json' => $request_body,
+       )
+    );
+    print_r($response->getBody()->getContents());
+ }
+ catch (\GuzzleHttp\Exception\BadResponseException $e) {
+    // handle exception or api errors.
+    print_r($e->getMessage());
+ }
+
+ // ...
+
+```
+
+```python
+import requests
+headers = {
+  'Accept': 'application/json',
+  'Authorization': 'Bearer {access-token}'
+}
+
+r = requests.post('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games', headers = headers)
+
+print(r.json())
+
+```
+
+```ruby
+require 'rest-client'
+require 'json'
+
+headers = {
+  'Accept' => 'application/json',
+  'Authorization' => 'Bearer {access-token}'
+}
+
+result = RestClient.post 'https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games',
+  params: {
+  }, headers: headers
+
+p JSON.parse(result)
+
+```
+
+```go
+package main
+
+import (
+       "bytes"
+       "net/http"
+)
+
+func main() {
+
+    headers := map[string][]string{
+        "Accept": []string{"application/json"},
+        "Authorization": []string{"Bearer {access-token}"},
+    }
+
+    data := bytes.NewBuffer([]byte{jsonReq})
+    req, err := http.NewRequest("POST", "https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games", data)
+    req.Header = headers
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    // ...
+}
+
+```
+
+```java
+URL obj = new URL("https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games");
+HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+con.setRequestMethod("POST");
+int responseCode = con.getResponseCode();
+BufferedReader in = new BufferedReader(
+    new InputStreamReader(con.getInputStream()));
+String inputLine;
+StringBuffer response = new StringBuffer();
+while ((inputLine = in.readLine()) != null) {
+    response.append(inputLine);
+}
+in.close();
+System.out.println(response.toString());
+
+```
+
+`POST /games`
+
+*Create a new game. This request returns the newly created game code like 'XY89'. This code is passed to the other player allowing them to join the game by POSTing to the /games/{code}/players endpoint.*
+
+> Example responses
+
+> 200 Response
+
+```json
+{
+  "code": "AB12"
+}
+```
+
+<h3 id="create-a-game-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|successful operation|Inline|
+|401|[Unauthorized](https://tools.ietf.org/html/rfc7235#section-3.1)|unauthorised - invalid Authorisation Bearer token|None|
+
+<h3 id="create-a-game-responseschema">Response Schema</h3>
+
+Status Code **200**
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|» code|string|false|none|4 character alphanumeric game code - used to uniquely identify this game|
+
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+bearerAuth
+</aside>
+
+## Join a game
+
+<a id="opIdJoin a game"></a>
+
+> Code samples
+
+```shell
+# You can also use wget
+curl -X POST https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/players \
+  -H 'Authorization: Bearer {access-token}'
+
+```
+
+```javascript
+
+const headers = {
+  'Authorization':'Bearer {access-token}'
+};
+
+fetch('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/players',
+{
+  method: 'POST',
+
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+
+```
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+$headers = array(
+    'Authorization' => 'Bearer {access-token}',
+);
+
+$client = new \GuzzleHttp\Client();
+
+// Define array of request body.
+$request_body = array();
+
+try {
+    $response = $client->request('POST','https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/players', array(
+        'headers' => $headers,
+        'json' => $request_body,
+       )
+    );
+    print_r($response->getBody()->getContents());
+ }
+ catch (\GuzzleHttp\Exception\BadResponseException $e) {
+    // handle exception or api errors.
+    print_r($e->getMessage());
+ }
+
+ // ...
+
+```
+
+```python
+import requests
+headers = {
+  'Authorization': 'Bearer {access-token}'
+}
+
+r = requests.post('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/players', headers = headers)
+
+print(r.json())
+
+```
+
+```ruby
+require 'rest-client'
+require 'json'
+
+headers = {
+  'Authorization' => 'Bearer {access-token}'
+}
+
+result = RestClient.post 'https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/players',
+  params: {
+  }, headers: headers
+
+p JSON.parse(result)
+
+```
+
+```go
+package main
+
+import (
+       "bytes"
+       "net/http"
+)
+
+func main() {
+
+    headers := map[string][]string{
+        "Authorization": []string{"Bearer {access-token}"},
+    }
+
+    data := bytes.NewBuffer([]byte{jsonReq})
+    req, err := http.NewRequest("POST", "https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/players", data)
+    req.Header = headers
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    // ...
+}
+
+```
+
+```java
+URL obj = new URL("https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/players");
+HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+con.setRequestMethod("POST");
+int responseCode = con.getResponseCode();
+BufferedReader in = new BufferedReader(
+    new InputStreamReader(con.getInputStream()));
+String inputLine;
+StringBuffer response = new StringBuffer();
+while ((inputLine = in.readLine()) != null) {
+    response.append(inputLine);
+}
+in.close();
+System.out.println(response.toString());
+
+```
+
+`POST /games/{code}/players`
+
+*Join a game. The second player joins a game by POSTing to the /games/{code}/players endpoint, where {code} is the 4 digit game code received by the player who created the game.*
+
+<h3 id="join-a-game-parameters">Parameters</h3>
+
+|Name|In|Type|Required|Description|
+|---|---|---|---|---|
+|code|path|string|true|The unique 4 character code for this game|
+
+<h3 id="join-a-game-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|204|[No Content](https://tools.ietf.org/html/rfc7231#section-6.3.5)|successful operation|None|
+|401|[Unauthorized](https://tools.ietf.org/html/rfc7235#section-3.1)|unauthorised - invalid API token|None|
+|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|game not found|None|
+|409|[Conflict](https://tools.ietf.org/html/rfc7231#section-6.5.8)|conflict - another player has aready accepted to join this game|None|
+|422|[Unprocessable Entity](https://tools.ietf.org/html/rfc2518#section-10.3)|unprocessable - this player has already joined this game (ie this player created the game)|None|
+
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+bearerAuth
+</aside>
+
+## Play a round
+
+<a id="opIdPlay a round"></a>
+
+> Code samples
+
+```shell
+# You can also use wget
+curl -X POST https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/rounds \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer {access-token}'
+
+```
+
+```javascript
+const inputBody = '{
+  "card": "A|C",
+  "moveRow": 3,
+  "moveCol": 7
+}';
+const headers = {
+  'Content-Type':'application/json',
+  'Authorization':'Bearer {access-token}'
+};
+
+fetch('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/rounds',
+{
+  method: 'POST',
+  body: inputBody,
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+
+```
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+$headers = array(
+    'Content-Type' => 'application/json',
+    'Authorization' => 'Bearer {access-token}',
+);
+
+$client = new \GuzzleHttp\Client();
+
+// Define array of request body.
+$request_body = array();
+
+try {
+    $response = $client->request('POST','https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/rounds', array(
+        'headers' => $headers,
+        'json' => $request_body,
+       )
+    );
+    print_r($response->getBody()->getContents());
+ }
+ catch (\GuzzleHttp\Exception\BadResponseException $e) {
+    // handle exception or api errors.
+    print_r($e->getMessage());
+ }
+
+ // ...
+
+```
+
+```python
+import requests
+headers = {
+  'Content-Type': 'application/json',
+  'Authorization': 'Bearer {access-token}'
+}
+
+r = requests.post('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/rounds', headers = headers)
+
+print(r.json())
+
+```
+
+```ruby
+require 'rest-client'
+require 'json'
+
+headers = {
+  'Content-Type' => 'application/json',
+  'Authorization' => 'Bearer {access-token}'
+}
+
+result = RestClient.post 'https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/rounds',
+  params: {
+  }, headers: headers
+
+p JSON.parse(result)
+
+```
+
+```go
+package main
+
+import (
+       "bytes"
+       "net/http"
+)
+
+func main() {
+
+    headers := map[string][]string{
+        "Content-Type": []string{"application/json"},
+        "Authorization": []string{"Bearer {access-token}"},
+    }
+
+    data := bytes.NewBuffer([]byte{jsonReq})
+    req, err := http.NewRequest("POST", "https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/rounds", data)
+    req.Header = headers
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    // ...
+}
+
+```
+
+```java
+URL obj = new URL("https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/rounds");
+HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+con.setRequestMethod("POST");
+int responseCode = con.getResponseCode();
+BufferedReader in = new BufferedReader(
+    new InputStreamReader(con.getInputStream()));
+String inputLine;
+StringBuffer response = new StringBuffer();
+while ((inputLine = in.readLine()) != null) {
+    response.append(inputLine);
+}
+in.close();
+System.out.println(response.toString());
+
+```
+
+`POST /games/{code}/rounds`
+
+*Play a round in a game. Players pass in the card they want to play from their hand together with the position on the board they want to play the card. If this is a valid move then the board state is updated and play moves to the other player. The business logic in this function makes various checks including <ul><li>Is it this player's turn?</li><li>Does the player have this card in their hand?</li><li>Is the move valid?</li></ul>*
+
+> Body parameter
+
+```json
+{
+  "card": "A|C",
+  "moveRow": 3,
+  "moveCol": 7
+}
+```
+
+<h3 id="play-a-round-parameters">Parameters</h3>
+
+|Name|In|Type|Required|Description|
+|---|---|---|---|---|
+|code|path|string|true|The unique 4 character code for this game|
+|card|body|string|true|The card this player wants to play|
+|moveRow|body|int32|true|The row number where the player wants to play this card, from 0 to 9|
+|moveCol|body|int32|true|The column number where the player wants to play this card, from 0 to 9|
+
+<h3 id="play-a-round-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|204|[No Content](https://tools.ietf.org/html/rfc7231#section-6.3.5)|successful operation|None|
+|401|[Unauthorized](https://tools.ietf.org/html/rfc7235#section-3.1)|unauthorised - invalid API token|None|
+|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|game not found|None|
+|422|[Unprocessable Entity](https://tools.ietf.org/html/rfc2518#section-10.3)|unprocessable|None|
+
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+bearerAuth
+</aside>
 
 ## Get game state
 
@@ -233,497 +747,6 @@ System.out.println(response.toString());
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|successful operation|[GameState](#schemagamestate)|
 |401|[Unauthorized](https://tools.ietf.org/html/rfc7235#section-3.1)|unauthorised - invalid API token|None|
 |404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|game not found|None|
-
-<aside class="warning">
-To perform this operation, you must be authenticated by means of one of the following methods:
-bearerAuth
-</aside>
-
-## Join a game
-
-<a id="opIdJoin a game"></a>
-
-> Code samples
-
-```shell
-# You can also use wget
-curl -X POST https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/players \
-  -H 'Authorization: Bearer {access-token}'
-
-```
-
-```javascript
-
-const headers = {
-  'Authorization':'Bearer {access-token}'
-};
-
-fetch('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/players',
-{
-  method: 'POST',
-
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```php
-<?php
-
-require 'vendor/autoload.php';
-
-$headers = array(
-    'Authorization' => 'Bearer {access-token}',
-);
-
-$client = new \GuzzleHttp\Client();
-
-// Define array of request body.
-$request_body = array();
-
-try {
-    $response = $client->request('POST','https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/players', array(
-        'headers' => $headers,
-        'json' => $request_body,
-       )
-    );
-    print_r($response->getBody()->getContents());
- }
- catch (\GuzzleHttp\Exception\BadResponseException $e) {
-    // handle exception or api errors.
-    print_r($e->getMessage());
- }
-
- // ...
-
-```
-
-```python
-import requests
-headers = {
-  'Authorization': 'Bearer {access-token}'
-}
-
-r = requests.post('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/players', headers = headers)
-
-print(r.json())
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-headers = {
-  'Authorization' => 'Bearer {access-token}'
-}
-
-result = RestClient.post 'https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/players',
-  params: {
-  }, headers: headers
-
-p JSON.parse(result)
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    headers := map[string][]string{
-        "Authorization": []string{"Bearer {access-token}"},
-    }
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("POST", "https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/players", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
-
-```
-
-```java
-URL obj = new URL("https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/players");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("POST");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-`POST /games/{code}/players`
-
-*Join a game. The second player joins a game by POSTing to the /games/{code}/players endpoint, where {code} is the 4 digit game code received by the player who created the game.*
-
-<h3 id="join-a-game-parameters">Parameters</h3>
-
-|Name|In|Type|Required|Description|
-|---|---|---|---|---|
-|code|path|string|true|The unique 4 character code for this game|
-
-<h3 id="join-a-game-responses">Responses</h3>
-
-|Status|Meaning|Description|Schema|
-|---|---|---|---|
-|204|[No Content](https://tools.ietf.org/html/rfc7231#section-6.3.5)|successful operation|None|
-|401|[Unauthorized](https://tools.ietf.org/html/rfc7235#section-3.1)|unauthorised - invalid API token|None|
-|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|game not found|None|
-|409|[Conflict](https://tools.ietf.org/html/rfc7231#section-6.5.8)|conflict - another player has aready accepted to join this game|None|
-|422|[Unprocessable Entity](https://tools.ietf.org/html/rfc2518#section-10.3)|unprocessable - this player has already joined this game (ie this player created the game)|None|
-
-<aside class="warning">
-To perform this operation, you must be authenticated by means of one of the following methods:
-bearerAuth
-</aside>
-
-## Play a round NOT LIVE
-
-<a id="opIdPlay a round NOT LIVE"></a>
-
-> Code samples
-
-```shell
-# You can also use wget
-curl -X POST https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/rounds \
-  -H 'Authorization: Bearer {access-token}'
-
-```
-
-```javascript
-
-const headers = {
-  'Authorization':'Bearer {access-token}'
-};
-
-fetch('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/rounds',
-{
-  method: 'POST',
-
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```php
-<?php
-
-require 'vendor/autoload.php';
-
-$headers = array(
-    'Authorization' => 'Bearer {access-token}',
-);
-
-$client = new \GuzzleHttp\Client();
-
-// Define array of request body.
-$request_body = array();
-
-try {
-    $response = $client->request('POST','https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/rounds', array(
-        'headers' => $headers,
-        'json' => $request_body,
-       )
-    );
-    print_r($response->getBody()->getContents());
- }
- catch (\GuzzleHttp\Exception\BadResponseException $e) {
-    // handle exception or api errors.
-    print_r($e->getMessage());
- }
-
- // ...
-
-```
-
-```python
-import requests
-headers = {
-  'Authorization': 'Bearer {access-token}'
-}
-
-r = requests.post('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/rounds', headers = headers)
-
-print(r.json())
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-headers = {
-  'Authorization' => 'Bearer {access-token}'
-}
-
-result = RestClient.post 'https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/rounds',
-  params: {
-  }, headers: headers
-
-p JSON.parse(result)
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    headers := map[string][]string{
-        "Authorization": []string{"Bearer {access-token}"},
-    }
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("POST", "https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/rounds", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
-
-```
-
-```java
-URL obj = new URL("https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/rounds");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("POST");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-`POST /games/{code}/rounds`
-
-*Play a round in a game. NOT IMPLEMENTED YET. NEED TO PASS THE CARD IN THE POST BODY.*
-
-<h3 id="play-a-round-not-live-parameters">Parameters</h3>
-
-|Name|In|Type|Required|Description|
-|---|---|---|---|---|
-|code|path|string|true|The unique 4 character code for this game|
-
-<h3 id="play-a-round-not-live-responses">Responses</h3>
-
-|Status|Meaning|Description|Schema|
-|---|---|---|---|
-|204|[No Content](https://tools.ietf.org/html/rfc7231#section-6.3.5)|successful operation|None|
-|401|[Unauthorized](https://tools.ietf.org/html/rfc7235#section-3.1)|unauthorised - invalid API token|None|
-|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|game not found|None|
-|422|[Unprocessable Entity](https://tools.ietf.org/html/rfc2518#section-10.3)|unprocessable|None|
-
-<aside class="warning">
-To perform this operation, you must be authenticated by means of one of the following methods:
-bearerAuth
-</aside>
-
-## Create a game
-
-<a id="opIdCreate a game"></a>
-
-> Code samples
-
-```shell
-# You can also use wget
-curl -X POST https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games \
-  -H 'Accept: application/json' \
-  -H 'Authorization: Bearer {access-token}'
-
-```
-
-```javascript
-
-const headers = {
-  'Accept':'application/json',
-  'Authorization':'Bearer {access-token}'
-};
-
-fetch('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games',
-{
-  method: 'POST',
-
-  headers: headers
-})
-.then(function(res) {
-    return res.json();
-}).then(function(body) {
-    console.log(body);
-});
-
-```
-
-```php
-<?php
-
-require 'vendor/autoload.php';
-
-$headers = array(
-    'Accept' => 'application/json',
-    'Authorization' => 'Bearer {access-token}',
-);
-
-$client = new \GuzzleHttp\Client();
-
-// Define array of request body.
-$request_body = array();
-
-try {
-    $response = $client->request('POST','https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games', array(
-        'headers' => $headers,
-        'json' => $request_body,
-       )
-    );
-    print_r($response->getBody()->getContents());
- }
- catch (\GuzzleHttp\Exception\BadResponseException $e) {
-    // handle exception or api errors.
-    print_r($e->getMessage());
- }
-
- // ...
-
-```
-
-```python
-import requests
-headers = {
-  'Accept': 'application/json',
-  'Authorization': 'Bearer {access-token}'
-}
-
-r = requests.post('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games', headers = headers)
-
-print(r.json())
-
-```
-
-```ruby
-require 'rest-client'
-require 'json'
-
-headers = {
-  'Accept' => 'application/json',
-  'Authorization' => 'Bearer {access-token}'
-}
-
-result = RestClient.post 'https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games',
-  params: {
-  }, headers: headers
-
-p JSON.parse(result)
-
-```
-
-```go
-package main
-
-import (
-       "bytes"
-       "net/http"
-)
-
-func main() {
-
-    headers := map[string][]string{
-        "Accept": []string{"application/json"},
-        "Authorization": []string{"Bearer {access-token}"},
-    }
-
-    data := bytes.NewBuffer([]byte{jsonReq})
-    req, err := http.NewRequest("POST", "https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games", data)
-    req.Header = headers
-
-    client := &http.Client{}
-    resp, err := client.Do(req)
-    // ...
-}
-
-```
-
-```java
-URL obj = new URL("https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games");
-HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-con.setRequestMethod("POST");
-int responseCode = con.getResponseCode();
-BufferedReader in = new BufferedReader(
-    new InputStreamReader(con.getInputStream()));
-String inputLine;
-StringBuffer response = new StringBuffer();
-while ((inputLine = in.readLine()) != null) {
-    response.append(inputLine);
-}
-in.close();
-System.out.println(response.toString());
-
-```
-
-`POST /games`
-
-*Create a new game. This request returns the newly created game code like 'XY89'. This code is passed to the other player allowing them to join the game by POSTing to the /games/{code}/players endpoint.*
-
-> Example responses
-
-> 200 Response
-
-```json
-{
-  "code": "AB12"
-}
-```
-
-<h3 id="create-a-game-responses">Responses</h3>
-
-|Status|Meaning|Description|Schema|
-|---|---|---|---|
-|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|successful operation|Inline|
-|401|[Unauthorized](https://tools.ietf.org/html/rfc7235#section-3.1)|unauthorised - invalid Authorisation Bearer token|None|
-
-<h3 id="create-a-game-responseschema">Response Schema</h3>
-
-Status Code **200**
-
-|Name|Type|Required|Restrictions|Description|
-|---|---|---|---|---|
-|» code|string|false|none|4 character alphanumeric game code - used to uniquely identify this game|
 
 <aside class="warning">
 To perform this operation, you must be authenticated by means of one of the following methods:
