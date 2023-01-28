@@ -387,7 +387,7 @@ exports.handler = (event, context, callback) => {
       if ((method == 'post') && (apiGatewayArnTmp[3].toLowerCase() == 'games')
         && ((apiGatewayArnTmp.length == 4) || ((apiGatewayArnTmp.length == 6) && (apiGatewayArnTmp[5].toLowerCase() == 'players')))) {
         //Create
-        return models.User.create({ deviceUUID: uuid, name: utilities.randomPlayerName() });
+        return models.User.create({ deviceUUID: uuid, name: utilities.randomPlayerName(), color: utilities.randomPlayerColor() });
       }
       else {
         return callback('Unauthorized');
@@ -400,7 +400,7 @@ exports.handler = (event, context, callback) => {
     console.log('Authorised access for user id: ' + principalId);
 
     //Define allowed methods and endpoints
-    const rps = { 'games': 'POST', 'games/*': ['POST', 'GET', 'DELETE'] };
+    const rps = { 'games': 'POST', 'games/*': ['POST', 'GET', 'DELETE'], 'users': ['GET', 'PATCH'] };
 
     const authResponse = CreateAuthResponse(principalId, awsAccountId, apiOptions, rps);
     return callback(null, authResponse);

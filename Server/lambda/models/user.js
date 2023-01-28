@@ -7,6 +7,9 @@ module.exports = function(sequelize, DataTypes) {
     },
     name: {
       type: DataTypes.STRING,
+    },
+    color: {
+      type: DataTypes.STRING,
     }
   }, {
     paranoid: true

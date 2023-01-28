@@ -102,6 +102,13 @@ function randomPlayerName() {
   return name;
 }
 
+//Create a random player color like ff0000
+function randomPlayerColor() {
+  return Array(6).fill('0123456789abcdef').map(function(x) {
+    return x[Math.floor(Math.random() * x.length)];
+  }).join('');
+}
+
 module.exports = {
   okResponse: okResponse,
   okEmptyResponse: okEmptyResponse,
@@ -111,5 +118,6 @@ module.exports = {
   isValidGameCode: isValidGameCode,
   createBoardStateArray: createBoardStateArray,
   createBoardStateString: createBoardStateString,
-  randomPlayerName: randomPlayerName
+  randomPlayerName: randomPlayerName,
+  randomPlayerColor: randomPlayerColor
 };

@@ -713,6 +713,7 @@ System.out.println(response.toString());
   "players": [
     {
       "name": "Player12345",
+      "color": "ff0000",
       "isMe": true
     }
   ],
@@ -910,6 +911,372 @@ To perform this operation, you must be authenticated by means of one of the foll
 bearerAuth
 </aside>
 
+<h1 id="sequence-api-users">Users</h1>
+
+The /users endpoint is to allow the player to get and set their player name (gamer tag) and colour
+
+## Get user details
+
+<a id="opIdGet user details"></a>
+
+> Code samples
+
+```shell
+# You can also use wget
+curl -X GET https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/users \
+  -H 'Accept: application/json' \
+  -H 'Authorization: Bearer {access-token}'
+
+```
+
+```javascript
+
+const headers = {
+  'Accept':'application/json',
+  'Authorization':'Bearer {access-token}'
+};
+
+fetch('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/users',
+{
+  method: 'GET',
+
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+
+```
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+$headers = array(
+    'Accept' => 'application/json',
+    'Authorization' => 'Bearer {access-token}',
+);
+
+$client = new \GuzzleHttp\Client();
+
+// Define array of request body.
+$request_body = array();
+
+try {
+    $response = $client->request('GET','https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/users', array(
+        'headers' => $headers,
+        'json' => $request_body,
+       )
+    );
+    print_r($response->getBody()->getContents());
+ }
+ catch (\GuzzleHttp\Exception\BadResponseException $e) {
+    // handle exception or api errors.
+    print_r($e->getMessage());
+ }
+
+ // ...
+
+```
+
+```python
+import requests
+headers = {
+  'Accept': 'application/json',
+  'Authorization': 'Bearer {access-token}'
+}
+
+r = requests.get('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/users', headers = headers)
+
+print(r.json())
+
+```
+
+```ruby
+require 'rest-client'
+require 'json'
+
+headers = {
+  'Accept' => 'application/json',
+  'Authorization' => 'Bearer {access-token}'
+}
+
+result = RestClient.get 'https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/users',
+  params: {
+  }, headers: headers
+
+p JSON.parse(result)
+
+```
+
+```go
+package main
+
+import (
+       "bytes"
+       "net/http"
+)
+
+func main() {
+
+    headers := map[string][]string{
+        "Accept": []string{"application/json"},
+        "Authorization": []string{"Bearer {access-token}"},
+    }
+
+    data := bytes.NewBuffer([]byte{jsonReq})
+    req, err := http.NewRequest("GET", "https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/users", data)
+    req.Header = headers
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    // ...
+}
+
+```
+
+```java
+URL obj = new URL("https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/users");
+HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+con.setRequestMethod("GET");
+int responseCode = con.getResponseCode();
+BufferedReader in = new BufferedReader(
+    new InputStreamReader(con.getInputStream()));
+String inputLine;
+StringBuffer response = new StringBuffer();
+while ((inputLine = in.readLine()) != null) {
+    response.append(inputLine);
+}
+in.close();
+System.out.println(response.toString());
+
+```
+
+`GET /users`
+
+*Get the user name and color.*
+
+> Example responses
+
+> 200 Response
+
+```json
+{
+  "name": "Bob",
+  "color": "ff0000"
+}
+```
+
+<h3 id="get-user-details-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|successful operation|[User](#schemauser)|
+|401|[Unauthorized](https://tools.ietf.org/html/rfc7235#section-3.1)|unauthorised - invalid API token|None|
+|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|user not found|None|
+
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+bearerAuth
+</aside>
+
+## Update user details
+
+<a id="opIdUpdate user details"></a>
+
+> Code samples
+
+```shell
+# You can also use wget
+curl -X PATCH https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/users \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -H 'Authorization: Bearer {access-token}'
+
+```
+
+```javascript
+const inputBody = '{
+  "name": "Bob",
+  "color": "ff0000"
+}';
+const headers = {
+  'Content-Type':'application/json',
+  'Accept':'application/json',
+  'Authorization':'Bearer {access-token}'
+};
+
+fetch('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/users',
+{
+  method: 'PATCH',
+  body: inputBody,
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+
+```
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+$headers = array(
+    'Content-Type' => 'application/json',
+    'Accept' => 'application/json',
+    'Authorization' => 'Bearer {access-token}',
+);
+
+$client = new \GuzzleHttp\Client();
+
+// Define array of request body.
+$request_body = array();
+
+try {
+    $response = $client->request('PATCH','https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/users', array(
+        'headers' => $headers,
+        'json' => $request_body,
+       )
+    );
+    print_r($response->getBody()->getContents());
+ }
+ catch (\GuzzleHttp\Exception\BadResponseException $e) {
+    // handle exception or api errors.
+    print_r($e->getMessage());
+ }
+
+ // ...
+
+```
+
+```python
+import requests
+headers = {
+  'Content-Type': 'application/json',
+  'Accept': 'application/json',
+  'Authorization': 'Bearer {access-token}'
+}
+
+r = requests.patch('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/users', headers = headers)
+
+print(r.json())
+
+```
+
+```ruby
+require 'rest-client'
+require 'json'
+
+headers = {
+  'Content-Type' => 'application/json',
+  'Accept' => 'application/json',
+  'Authorization' => 'Bearer {access-token}'
+}
+
+result = RestClient.patch 'https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/users',
+  params: {
+  }, headers: headers
+
+p JSON.parse(result)
+
+```
+
+```go
+package main
+
+import (
+       "bytes"
+       "net/http"
+)
+
+func main() {
+
+    headers := map[string][]string{
+        "Content-Type": []string{"application/json"},
+        "Accept": []string{"application/json"},
+        "Authorization": []string{"Bearer {access-token}"},
+    }
+
+    data := bytes.NewBuffer([]byte{jsonReq})
+    req, err := http.NewRequest("PATCH", "https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/users", data)
+    req.Header = headers
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    // ...
+}
+
+```
+
+```java
+URL obj = new URL("https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/users");
+HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+con.setRequestMethod("PATCH");
+int responseCode = con.getResponseCode();
+BufferedReader in = new BufferedReader(
+    new InputStreamReader(con.getInputStream()));
+String inputLine;
+StringBuffer response = new StringBuffer();
+while ((inputLine = in.readLine()) != null) {
+    response.append(inputLine);
+}
+in.close();
+System.out.println(response.toString());
+
+```
+
+`PATCH /users`
+
+*Set the user name and / or colour.*
+
+> Body parameter
+
+```json
+{
+  "name": "Bob",
+  "color": "ff0000"
+}
+```
+
+<h3 id="update-user-details-parameters">Parameters</h3>
+
+|Name|In|Type|Required|Description|
+|---|---|---|---|---|
+|name|body|string|false|The new name for this player|
+|color|body|string|false|The new colour for this player - as a hex string|
+
+> Example responses
+
+> 200 Response
+
+```json
+{
+  "name": "Bob",
+  "color": "ff0000"
+}
+```
+
+<h3 id="update-user-details-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|successful operation|[User](#schemauser)|
+|401|[Unauthorized](https://tools.ietf.org/html/rfc7235#section-3.1)|unauthorised - invalid API token|None|
+|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|user not found|None|
+|422|[Unprocessable Entity](https://tools.ietf.org/html/rfc2518#section-10.3)|unprocessable|None|
+
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+bearerAuth
+</aside>
+
 # Schemas
 
 <h2 id="tocS_Player">Player</h2>
@@ -922,6 +1289,7 @@ bearerAuth
 ```json
 {
   "name": "Player12345",
+  "color": "ff0000",
   "isMe": true
 }
 
@@ -934,6 +1302,7 @@ Player information
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
 |name|string|false|none|The name of the player. Currently this is set to a random player name when the player is created, format 'PlayerXXXXX' where 'X' is a 0-9 random digit.|
+|color|string|false|none|The color for this player as a hex string. Currently this is set to a random color when the player is created, format 'XXXXXX' where 'X' is a 0-9a-f hex color.|
 |isMe|boolean|false|none|Flag indicating if this player is the player making the request|
 
 <h2 id="tocS_BoardRow">BoardRow</h2>
@@ -978,6 +1347,7 @@ The state of one row on the board as a 10 element array of strings. The string i
   "players": [
     {
       "name": "Player12345",
+      "color": "ff0000",
       "isMe": true
     }
   ],
@@ -1026,4 +1396,28 @@ Game state information. Always returns 'status' and 'players'. Other properties 
 |status|waitingForPlayers|
 |status|active|
 |status|ended|
+
+<h2 id="tocS_User">User</h2>
+<!-- backwards compatibility -->
+<a id="schemauser"></a>
+<a id="schema_User"></a>
+<a id="tocSuser"></a>
+<a id="tocsuser"></a>
+
+```json
+{
+  "name": "Bob",
+  "color": "ff0000"
+}
+
+```
+
+User information
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|name|string|true|none|The player's name|
+|color|string|true|none|The player's color|
 

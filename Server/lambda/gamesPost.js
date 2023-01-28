@@ -79,8 +79,10 @@ function postGame(event, callback) {
   .then(function(game) {
     return callback(null, utilities.okResponse(event, { code: game.code }));
   }, function(err) {
+    console.log(err);
     return callback(null, utilities.errorResponse(event, err));
   }).catch(function (err) {
+    console.log(err);
     return callback(null, utilities.errorResponse(event, err));
   });
 }

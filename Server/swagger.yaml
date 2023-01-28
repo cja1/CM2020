@@ -23,6 +23,10 @@ tags:
       won.</li><li>When the game is won the game status change to
       "ended"</li><li>At any time a player can get the game state by calling GET
       on /games/{code} endpoint. This returns the current game state.</li></ul>
+  - name: Users
+    description: >-
+      The /users endpoint is to allow the player to get and set their player
+      name (gamer tag) and colour
 components:
   securitySchemes:
     bearerAuth:
@@ -46,6 +50,13 @@ components:
             name when the player is created, format 'PlayerXXXXX' where 'X' is a
             0-9 random digit.
           example: Player12345
+        color:
+          type: string
+          description: >-
+            The color for this player as a hex string. Currently this is set to
+            a random color when the player is created, format 'XXXXXX' where 'X'
+            is a 0-9a-f hex color.
+          example: ff0000
         isMe:
           type: boolean
           description: Flag indicating if this player is the player making the request
@@ -127,6 +138,21 @@ components:
             that 0 indicates that no player won - ie game was cancelled before a
             Player won the game.
           example: 2
+    User:
+      type: object
+      description: User information
+      required:
+        - name
+        - color
+      properties:
+        name:
+          type: string
+          description: The player's name
+          example: Bob
+        color:
+          type: string
+          description: The player's color
+          example: ff0000
 paths:
   /games:
     post:
@@ -303,3 +329,57 @@ paths:
           description: unauthorised - invalid Authorisation Bearer token
         '404':
           description: game not found
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Get the user name and color.
+      operationId: Get user details
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: unauthorised - invalid API token
+        '404':
+          description: user not found
+    patch:
+      tags:
+        - Users
+      summary: Set the user name and / or colour.
+      operationId: Update user details
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: The new name for this player
+                  example: Bob
+                color:
+                  type: string
+                  description: The new colour for this player - as a hex string
+                  example: ff0000
+        required: false
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: unauthorised - invalid API token
+        '404':
+          description: user not found
+        '422':
+          description: unprocessable

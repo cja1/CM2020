@@ -19,6 +19,10 @@ var principalId;
  *           type: string
  *           description: The name of the player. Currently this is set to a random player name when the player is created, format 'PlayerXXXXX' where 'X' is a 0-9 random digit.
  *           example: Player12345
+ *         color:
+ *           type: string
+ *           description: The color for this player as a hex string. Currently this is set to a random color when the player is created, format 'XXXXXX' where 'X' is a 0-9a-f hex color.
+ *           example: ff0000
  *         isMe:
  *           type: boolean
  *           description: Flag indicating if this player is the player making the request
@@ -106,8 +110,8 @@ function getGame(event, callback) {
   models.Game.findOne({
     attributes: ['id', 'status', 'cardsP1', 'cardsP2', 'nextPlayer', 'winner', 'boardState', 'Player1Id', 'Player2Id'],
     include: [
-      { model: models.User, as: 'Player1', required: true, attributes: ['id', 'name'] },
-      { model: models.User, as: 'Player2', required: false, attributes: ['id', 'name'] }
+      { model: models.User, as: 'Player1', required: true, attributes: ['id', 'name', 'color'] },
+      { model: models.User, as: 'Player2', required: false, attributes: ['id', 'name', 'color'] }
     ],
     where: { [Op.and]: [
       { code: code.toUpperCase() },
@@ -120,10 +124,10 @@ function getGame(event, callback) {
     }
 
     //Create players array
-    var players = [ { name: game.Player1.name, isMe: game.Player1.id == principalId }];
+    var players = [ { name: game.Player1.name, color: game.Player1.color, isMe: game.Player1.id == principalId }];
     if (game.Player2 != null) {
       //Add second player
-      players.push({ name: game.Player2.name, isMe: game.Player2.id == principalId });
+      players.push({ name: game.Player2.name, color: game.Player2.color, isMe: game.Player2.id == principalId });
     }
 
     //Add items to gameState that are always present regardless of status
@@ -151,8 +155,10 @@ function getGame(event, callback) {
 
     return callback(null, utilities.okResponse(event, gameState));
   }, function(err) {
+    console.log(err);
     return callback(null, utilities.errorResponse(event, err));
   }).catch(function (err) {
+    console.log(err);
     return callback(null, utilities.errorResponse(event, err));
   });
 }
@@ -163,7 +169,7 @@ exports.handler = (event, context, callback) => {
   context.callbackWaitsForEmptyEventLoop = false;
   if (_.get(event, 'requestContext.authorizer.principalId', false) === false) {
     var err = new Error('Unauthorised (1)'); err.status = 401;
-    return callback(null, utilities.ErrorResponse(event, err));
+    return callback(null, utilities.errorResponse(event, err));
   }
   principalId = parseInt(event.requestContext.authorizer.principalId);
   const method = event.httpMethod || 'undefined';       //like GET
@@ -189,7 +195,7 @@ exports.handler = (event, context, callback) => {
       break;
 
     default:
-      return callback(null, utilities.ErrorResponse(event));
+      return callback(null, utilities.errorResponse(event));
       break;    
   }
 

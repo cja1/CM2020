@@ -1,0 +1,15 @@
+{
+  "resource": "/games/{code}",
+  "httpMethod": "GET",
+  "requestContext": {
+    "authorizer": {
+      "principalId": 19
+    }
+  },
+  "headers": {
+  },
+  "pathParameters": {
+    "code": "TEST"
+  },
+  "body": null
+}

@@ -380,7 +380,7 @@ exports.handler = (event, context, callback) => {
   context.callbackWaitsForEmptyEventLoop = false;
   if (_.get(event, 'requestContext.authorizer.principalId', false) === false) {
     var err = new Error('Unauthorised (1)'); err.status = 401;
-    return callback(null, utilities.ErrorResponse(event, err));
+    return callback(null, utilities.errorResponse(event, err));
   }
   principalId = parseInt(event.requestContext.authorizer.principalId);
   const method = event.httpMethod || 'undefined';       //like GET
@@ -406,7 +406,7 @@ exports.handler = (event, context, callback) => {
       break;
 
     default:
-      return callback(null, utilities.ErrorResponse(event));
+      return callback(null, utilities.errorResponse(event));
       break;    
   }
 

@@ -37,6 +37,7 @@ CREATE TABLE `Users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `deviceUUID` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `name` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `color` varchar(10) COLLATE utf8_bin DEFAULT NULL,
   `createdAt` datetime NOT NULL,
   `updatedAt` datetime NOT NULL,
   `deletedAt` datetime DEFAULT NULL,

@@ -81,8 +81,10 @@ function postPlayer(event, callback) {
   .then(function() {
     return callback(null, utilities.okEmptyResponse(event));
   }, function(err) {
+    console.log(err);
     return callback(null, utilities.errorResponse(event, err));
   }).catch(function (err) {
+    console.log(err);
     return callback(null, utilities.errorResponse(event, err));
   });
 }
