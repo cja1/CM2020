@@ -28,7 +28,11 @@ module.exports = function(sequelize, DataTypes) {
     },
     boardState: {
       type: DataTypes.STRING(1024)
-    }    
+    },
+    isPlayer2Bot: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    }
   }, {
     paranoid: true
   });

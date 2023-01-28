@@ -1,3 +1,5 @@
+var AWS = require('aws-sdk');
+
 //Consts
 const accessControlHeaders = {
   'access-control-allow-origin': '*',
@@ -109,6 +111,16 @@ function randomPlayerColor() {
   }).join('');
 }
 
+function createSQSEntryForBot(code) {
+  //Just send the game code in the message body: all the bot needs to play a round in this game
+  var sqs = new AWS.SQS({apiVersion: '2012-11-05'});
+  const params = {
+    MessageBody: code,
+    QueueUrl: 'https://sqs.eu-west-1.amazonaws.com/705936070782/sequenceBot'
+  };
+  return sqs.sendMessage(params).promise();
+}
+
 module.exports = {
   okResponse: okResponse,
   okEmptyResponse: okEmptyResponse,
@@ -119,5 +131,6 @@ module.exports = {
   createBoardStateArray: createBoardStateArray,
   createBoardStateString: createBoardStateString,
   randomPlayerName: randomPlayerName,
-  randomPlayerColor: randomPlayerColor
+  randomPlayerColor: randomPlayerColor,
+  createSQSEntryForBot: createSQSEntryForBot
 };

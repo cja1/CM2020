@@ -38,6 +38,15 @@ var principalId;
 //************************************
 function postGame(event, callback) {
 
+  //validate the body - see if isPlayer2Bot is set and true
+  const jsonBody = utilities.parseJson(event.body);  //deals with nulls and JSON parse errors
+  var isPlayer2Bot = false;
+  if (('isPlayer2Bot' in jsonBody) && validator.isBoolean(jsonBody.isPlayer2Bot + '', { loose: false }) && ['true', '1'].includes(jsonBody.isPlayer2Bot + '')) {
+    isPlayer2Bot = true;
+  }
+
+  const code = utilities.generateGameCode();
+
   //Set status to 'ended' and winner to 0 for any game this player is in - either as player 1 or player 2
   models.Game.update(
     { status: 'ended', winner: 0 },
@@ -63,7 +72,7 @@ function postGame(event, callback) {
 
     //create game with player 1 as the originator
     const game = {
-      code: utilities.generateGameCode(),
+      code: code,
       status: 'waitingForPlayers',
       cardsP1: cardsP1.join(','),
       cardsP2: cardsP2.join(','),
@@ -71,13 +80,21 @@ function postGame(event, callback) {
       cardPos: 12,
       nextPlayer: 1,
       boardState: generateEmptyBoardState().join(','),
+      isPlayer2Bot: isPlayer2Bot,
       Player1Id: principalId
     };
     console.log(game);
     return models.Game.create(game);
   })
   .then(function(game) {
-    return callback(null, utilities.okResponse(event, { code: game.code }));
+    if (!isPlayer2Bot) {
+      return Promise.resolve();
+    }
+    //Create an SQS entry to signal the bot to join this game
+    return utilities.createSQSEntryForBot(code);
+  })
+  .then(function() {  
+    return callback(null, utilities.okResponse(event, { code: code }));
   }, function(err) {
     console.log(err);
     return callback(null, utilities.errorResponse(event, err));

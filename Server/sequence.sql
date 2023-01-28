@@ -21,6 +21,7 @@ CREATE TABLE `Games` (
   `nextPlayer` int(11) DEFAULT NULL,
   `winner` int(11) DEFAULT NULL,
   `boardState` varchar(1024) COLLATE utf8_bin DEFAULT NULL,
+  `isPlayer2Bot` tinyint(1) DEFAULT '0',
   `Player1Id` int(11) DEFAULT NULL,
   `Player2Id` int(11) DEFAULT NULL,
   `createdAt` datetime NOT NULL,

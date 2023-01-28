@@ -30,7 +30,10 @@
   <section class="pl-container pl-container-small docs-section demo-pd">
     <form>
       <div class="pl-row">
-        <div class="pl-col-md-4"></div>
+        <div class="pl-col-md-2"></div>
+        <div class="pl-col-md-2">
+          <label for="isPlayer2Bot">Play against bot</label><input type="checkbox" id="isPlayer2Bot" name="isPlayer2Bot">        
+        </div>
         <div class="pl-col-md-2">
           <button type="submit" class="pl-button full" id="createGame">Create Game</button>
         </div>
@@ -134,9 +137,12 @@ function getDeviceUUID() {
 
 function createGame() {
   $('#createGame').addClass('loading');
+  const obj = { isPlayer2Bot: $('#isPlayer2Bot').is(':checked') };
   $.ajax({
     type: 'POST',
     url: API_ENDPOINT + '/games',
+    data: JSON.stringify(obj),
+    contentType: 'application/json',
     beforeSend: function (xhr) {
       xhr.setRequestHeader('Authorization', 'Bearer ' + getDeviceUUID());
     },
@@ -181,8 +187,6 @@ function playRound() {
   $('#playRound').addClass('loading');
 
   const obj = { card: $('#roundCard').val(), moveRow: $('#roundRow').val(), moveCol: $('#roundCol').val() };
-
-  console.log(obj);
 
   $.ajax({
     type: 'POST',

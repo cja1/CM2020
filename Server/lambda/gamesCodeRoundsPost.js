@@ -105,12 +105,12 @@ function postRound(event, callback) {
     return callback(null, utilities.errorResponse(event, error));              
   }
 
-  //Get the game: with this code, where active, and with the requestor as Player1 or Player2
+  //Get the game: with this code, where active or waitingForPlayers, and with the requestor as Player1 or Player2
   models.Game.findOne({
-    attributes: ['id', 'status', 'cardsP1', 'cardsP2', 'cards', 'cardPos', 'nextPlayer', 'winner', 'boardState', 'Player1Id', 'Player2Id'],
+    attributes: ['id', 'status', 'cardsP1', 'cardsP2', 'cards', 'cardPos', 'nextPlayer', 'winner', 'boardState', 'Player1Id', 'Player2Id', 'isPlayer2Bot'],
     where: { [Op.and]: [
       { code: code.toUpperCase() },
-      { status: 'active' },
+      { status: { [Op.in]: ['waitingForPlayers', 'active'] }},
       { [Op.or]: [ { Player1Id: principalId }, { Player2Id: principalId } ] }
     ]}
   })
@@ -118,7 +118,10 @@ function postRound(event, callback) {
     if (game == null) {
       var error = new Error('Game not found: ' + code); error.status = 404; throw(error);
     }
-
+    if (game.status == 'waitingForPlayers') {
+      //also a 404 but nicer error message
+      var error = new Error('Game with code ' + code + ' waiting for second player to join'); error.status = 404; throw(error);      
+    }
     //Check this players turn
     if ((game.nextPlayer == 1) && (game.Player1Id != principalId)) {
       var error = new Error('Not Player 2\'s turn'); error.status = 422; throw(error);      
@@ -146,8 +149,12 @@ function postRound(event, callback) {
     //Update cards for this player
     //Remove the card that was played...
     cardsPlayer.splice(cardsPlayer.indexOf(card), 1);;
-    //...and deal the next card to them
-    cardsPlayer.push(game.cards.split(',')[game.cardPos]);
+    //...and deal the next card to them - if cards left
+    var cardPos = game.cardPos;
+    if (cardPos < 52) {
+      cardsPlayer.push(game.cards.split(',')[cardPos]);      
+      cardPos += 1;
+    }
 
     //Have they won?
     if (didWin(boardStateArray)) {
@@ -156,7 +163,7 @@ function postRound(event, callback) {
     }
     else {
       //Update the nextPlayer, boardState and the cardPos in the pack...
-      var updateObj = { nextPlayer: (game.nextPlayer == 1) ? 2 : 1, boardState: boardState, cardPos: game.cardPos + 1 };
+      var updateObj = { nextPlayer: (game.nextPlayer == 1) ? 2 : 1, boardState: boardState, cardPos: cardPos };
       //... and update the relevant player's cards too
       if (game.nextPlayer == 1) {
         updateObj['cardsP1'] = cardsPlayer.join(',');
@@ -168,6 +175,13 @@ function postRound(event, callback) {
     }
   })
   .then(function(game) {
+    if (!game.isPlayer2Bot) {
+      return Promise.resolve();
+    }
+    //Create an SQS entry to signal the bot to play a round in this game
+    return utilities.createSQSEntryForBot(code);
+  })
+  .then(function() {  
     console.log('Successfully played round', principalId, card, moveRow, moveCol);
     return callback(null, utilities.okEmptyResponse(event));
   }, function(err) {
