@@ -38,9 +38,9 @@ var principalId;
 //************************************
 function postGame(event, callback) {
 
-  //Set status to 'ended' for any game this player is in - either as player 1 or player 2
+  //Set status to 'ended' and winner to 0 for any game this player is in - either as player 1 or player 2
   models.Game.update(
-    { status: 'ended' },
+    { status: 'ended', winner: 0 },
     { where: { [Op.and]: [ { status: { [Op.in]: ['waitingForPlayers', 'active']} }, { [Op.or]: [ { Player1Id: principalId }, { Player2Id: principalId } ] } ] } }
   )
   .then(function() {

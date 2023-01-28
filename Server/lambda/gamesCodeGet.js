@@ -27,13 +27,13 @@ var principalId;
  *     BoardRow:
  *       type: array
  *       description: The state of one row on the board as a 10 element array of strings. The string is blank if no-one owns the cell, 'p1' if Player 1 owns it, or 'p2' if Player 2 owns it.
- *       example: ["", "", "", "p1", "p2", "", "p1", "", "", ""]
+ *       example: ['', '', '', 'p1', 'p2', '', 'p1', '', '', '']
  *       items:
  *         type: string
  *
  *     GameState:
  *       type: object
- *       description: Game state information. Always returns status and players. Other properties depend on game status. If 'waitingForPlayers' then no additional properties. If 'active' then also returns 'nextPlayer', 'boardState' and 'cards'. If 'ended' then also returns 'winner' and 'boardState'.
+ *       description: Game state information. Always returns 'status' and 'players'. Other properties depend on game status - <ul><li><b>status = 'waitingForPlayers'</b> returns 'status', 'players'</li><li><b>status = 'active'</b> returns 'status', 'players', 'nextPlayer', 'boardState', 'cards'</li><li><b>status = 'ended'</b> returns 'status', 'players', 'winner', 'boardState'</li></ul>
  *       required: [status, players]
  *       properties:
  *         status:
@@ -70,7 +70,7 @@ var principalId;
  *   get:
  *     tags:
  *     - Games
- *     summary: Get the state of this game. Always returns 'status' and 'players' properties. Other properties depend on game 'status'. If 'status' is 'waitingForPlayers' then no additional properties sent. If 'status' is 'active' then also returns 'nextPlayer', 'boardState' and 'cards' properties. If 'status' is 'ended' then also returns 'winner' and 'boardState' properties.
+ *     summary: Get the state of this game. Always returns 'status' and 'players'. Other properties depend on game status - <ul><li><b>status = 'waitingForPlayers'</b> returns 'status', 'players'</li><li><b>status = 'active'</b> returns 'status', 'players', 'nextPlayer', 'boardState', 'cards'</li><li><b>status = 'ended'</b> returns 'status', 'players', 'winner', 'boardState'</li></ul>
  *     operationId: Get game state
  *     parameters:
  *       - name: code
@@ -88,7 +88,6 @@ var principalId;
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/GameState'
- * 
  *       401:
  *         description: unauthorised - invalid API token
  *       404:
@@ -103,7 +102,7 @@ function getGame(event, callback) {
   //already validated code
   const code = event.pathParameters.code;
 
-  //Get the game: with this code, where waitingForPlayers, active or ended, and with the requestor as Player1 or Player2
+  //Get the game: with this code, where the requestor as Player1 or Player2
   models.Game.findOne({
     attributes: ['id', 'status', 'cardsP1', 'cardsP2', 'nextPlayer', 'winner', 'boardState', 'Player1Id', 'Player2Id'],
     include: [
@@ -112,7 +111,6 @@ function getGame(event, callback) {
     ],
     where: { [Op.and]: [
       { code: code.toUpperCase() },
-      { status: { [Op.in]: ['waitingForPlayers', 'active', 'ended'] } },
       { [Op.or]: [ { Player1Id: principalId }, { Player2Id: principalId } ] }
     ]}
   })

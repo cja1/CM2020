@@ -400,7 +400,7 @@ exports.handler = (event, context, callback) => {
     console.log('Authorised access for user id: ' + principalId);
 
     //Define allowed methods and endpoints
-    const rps = { 'games': 'POST', 'games/*': ['POST', 'GET'] };
+    const rps = { 'games': 'POST', 'games/*': ['POST', 'GET', 'DELETE'] };
 
     const authResponse = CreateAuthResponse(principalId, awsAccountId, apiOptions, rps);
     return callback(null, authResponse);

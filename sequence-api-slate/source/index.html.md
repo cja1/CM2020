@@ -37,7 +37,7 @@ Base URL:
 
 <h1 id="sequence-api-games">Games</h1>
 
-The /games endpoint is the main endpoint used for creating a new game, joining an existing game, playing a round and getting the game state.<br/><br/>The expected order of events is:<ul><li>A player POSTs to the /games endpoint to create a new game. They receive a 4-digit game code. They pass this to the second player. The game status is "waitingForPlayers".</li><li>The second player POSTs to the /games/{code}/players endpoint to join the game. Now the game status is "active".</li><li>Turn-by-turn, each players POSTs to the /games/{code}/rounds endpoint with the card they want to play and the board position they want to play it. This continues until the game is won.</li><li>When the game is won the game status change to "ended"</li><li>At any time a player can get the game state by calling GET on /games/{code} endpoint. This returns the current game state.</li></ul>
+The /games endpoint is the main endpoint used for creating a new game, joining an existing game, playing a round, getting the game state and deleting a game.<br/><br/>The expected order of events is:<ul><li>A player POSTs to the /games endpoint to create a new game. They receive a 4-digit game code. They pass this to the second player. The game status is "waitingForPlayers".</li><li>The second player POSTs to the /games/{code}/players endpoint to join the game. Now the game status is "active".</li><li>Turn-by-turn, each players POSTs to the /games/{code}/rounds endpoint with the card they want to play and the board position they want to play it. This continues until the game is won.</li><li>When the game is won the game status change to "ended"</li><li>At any time a player can get the game state by calling GET on /games/{code} endpoint. This returns the current game state.</li></ul>
 
 ## Create a game
 
@@ -695,7 +695,7 @@ System.out.println(response.toString());
 
 `GET /games/{code}`
 
-*Get the state of this game. Always returns 'status' and 'players' properties. Other properties depend on game 'status'. If 'status' is 'waitingForPlayers' then no additional properties sent. If 'status' is 'active' then also returns 'nextPlayer', 'boardState' and 'cards' properties. If 'status' is 'ended' then also returns 'winner' and 'boardState' properties.*
+*Get the state of this game. Always returns 'status' and 'players'. Other properties depend on game status - <ul><li><b>status = 'waitingForPlayers'</b> returns 'status', 'players'</li><li><b>status = 'active'</b> returns 'status', 'players', 'nextPlayer', 'boardState', 'cards'</li><li><b>status = 'ended'</b> returns 'status', 'players', 'winner', 'boardState'</li></ul>*
 
 <h3 id="get-game-state-parameters">Parameters</h3>
 
@@ -746,6 +746,163 @@ System.out.println(response.toString());
 |---|---|---|---|
 |200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|successful operation|[GameState](#schemagamestate)|
 |401|[Unauthorized](https://tools.ietf.org/html/rfc7235#section-3.1)|unauthorised - invalid API token|None|
+|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|game not found|None|
+
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+bearerAuth
+</aside>
+
+## Delete a game
+
+<a id="opIdDelete a game"></a>
+
+> Code samples
+
+```shell
+# You can also use wget
+curl -X DELETE https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code} \
+  -H 'Authorization: Bearer {access-token}'
+
+```
+
+```javascript
+
+const headers = {
+  'Authorization':'Bearer {access-token}'
+};
+
+fetch('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}',
+{
+  method: 'DELETE',
+
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+
+```
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+$headers = array(
+    'Authorization' => 'Bearer {access-token}',
+);
+
+$client = new \GuzzleHttp\Client();
+
+// Define array of request body.
+$request_body = array();
+
+try {
+    $response = $client->request('DELETE','https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}', array(
+        'headers' => $headers,
+        'json' => $request_body,
+       )
+    );
+    print_r($response->getBody()->getContents());
+ }
+ catch (\GuzzleHttp\Exception\BadResponseException $e) {
+    // handle exception or api errors.
+    print_r($e->getMessage());
+ }
+
+ // ...
+
+```
+
+```python
+import requests
+headers = {
+  'Authorization': 'Bearer {access-token}'
+}
+
+r = requests.delete('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}', headers = headers)
+
+print(r.json())
+
+```
+
+```ruby
+require 'rest-client'
+require 'json'
+
+headers = {
+  'Authorization' => 'Bearer {access-token}'
+}
+
+result = RestClient.delete 'https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}',
+  params: {
+  }, headers: headers
+
+p JSON.parse(result)
+
+```
+
+```go
+package main
+
+import (
+       "bytes"
+       "net/http"
+)
+
+func main() {
+
+    headers := map[string][]string{
+        "Authorization": []string{"Bearer {access-token}"},
+    }
+
+    data := bytes.NewBuffer([]byte{jsonReq})
+    req, err := http.NewRequest("DELETE", "https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}", data)
+    req.Header = headers
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    // ...
+}
+
+```
+
+```java
+URL obj = new URL("https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}");
+HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+con.setRequestMethod("DELETE");
+int responseCode = con.getResponseCode();
+BufferedReader in = new BufferedReader(
+    new InputStreamReader(con.getInputStream()));
+String inputLine;
+StringBuffer response = new StringBuffer();
+while ((inputLine = in.readLine()) != null) {
+    response.append(inputLine);
+}
+in.close();
+System.out.println(response.toString());
+
+```
+
+`DELETE /games/{code}`
+
+*Delete a new game. This request sets the game 'status' to 'ended' and the 'winner' to 0 to indicate no winner. Note that DELETE is idempotent - as long as the game code is valid for this player then the operation succeeds even if the game state is already set to ended. Note also that a game that has been won (and ended) will keep the existing 'winner' value, so calling DELETE doesn't remove the winner.*
+
+<h3 id="delete-a-game-parameters">Parameters</h3>
+
+|Name|In|Type|Required|Description|
+|---|---|---|---|---|
+|code|path|string|true|The unique 4 character code for this game|
+
+<h3 id="delete-a-game-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|204|[No Content](https://tools.ietf.org/html/rfc7231#section-6.3.5)|successful operation|None|
+|401|[Unauthorized](https://tools.ietf.org/html/rfc7235#section-3.1)|unauthorised - invalid Authorisation Bearer token|None|
 |404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|game not found|None|
 
 <aside class="warning">
@@ -849,7 +1006,7 @@ The state of one row on the board as a 10 element array of strings. The string i
 
 ```
 
-Game state information. Always returns status and players. Other properties depend on game status. If 'waitingForPlayers' then no additional properties. If 'active' then also returns 'nextPlayer', 'boardState' and 'cards'. If 'ended' then also returns 'winner' and 'boardState'.
+Game state information. Always returns 'status' and 'players'. Other properties depend on game status - <ul><li><b>status = 'waitingForPlayers'</b> returns 'status', 'players'</li><li><b>status = 'active'</b> returns 'status', 'players', 'nextPlayer', 'boardState', 'cards'</li><li><b>status = 'ended'</b> returns 'status', 'players', 'winner', 'boardState'</li></ul>
 
 ### Properties
 

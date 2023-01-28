@@ -9,12 +9,12 @@ var principalId;
 /**
  * @swagger
  *
- * /games/{code}/players:
- *   post:
+ * /games/{code}:
+ *   delete:
  *     tags:
  *     - Games
- *     summary: Join a game. The second player joins a game by POSTing to the /games/{code}/players endpoint, where {code} is the 4 digit game code received by the player who created the game.
- *     operationId: Join a game
+ *     summary: Delete a new game. This request sets the game 'status' to 'ended' and the 'winner' to 0 to indicate no winner. Note that DELETE is idempotent - as long as the game code is valid for this player then the operation succeeds even if the game state is already set to ended. Note also that a game that has been won (and ended) will keep the existing 'winner' value, so calling DELETE doesn't remove the winner.
+ *     operationId: Delete a game
  *     parameters:
  *       - name: code
  *         in: path
@@ -28,57 +28,42 @@ var principalId;
  *       204:
  *         description: successful operation
  *       401:
- *         description: unauthorised - invalid API token
+ *         description: unauthorised - invalid Authorisation Bearer token
  *       404:
  *         description: game not found
- *       409:
- *         description: conflict - another player has aready accepted to join this game
- *       422:
- *         description: unprocessable - this player has already joined this game (ie this player created the game)
  */
 
 //************************************
-// POST PLAYER TO GAME
+// DELETE GAME
 //************************************
-function postPlayer(event, callback) {
+function deleteGame(event, callback) {
 
   //already validated code
   const code = event.pathParameters.code;
 
+  //Get the game: with this code, where waitingForPlayers, active or ended, and with the requestor as Player1 or Player2
   models.Game.findOne({
-    attributes: ['id', 'status', 'Player1Id', 'Player2Id'],
+    attributes: ['id', 'status', 'winner'],
     where: { [Op.and]: [
       { code: code.toUpperCase() },
-      { status: { [Op.in]: ['waitingForPlayers', 'active'] } }
+      { [Op.or]: [ { Player1Id: principalId }, { Player2Id: principalId } ] }
     ]}
   })
   .then(function(game) {
-    console.log('game', game);
     if (game == null) {
       var error = new Error('Game not found: ' + code); error.status = 404; throw(error);
     }
-    if (game.status == 'active') {
-      var error = new Error('This game already has 2 players'); error.status = 409; throw(error);      
+
+    //If game ended then no action
+    if (game.status == 'ended') {
+      return Promise.resolve();
     }
-    if (game.Player1Id == principalId) {
-      var error = new Error('Game created by this player - cannot be joined a second time'); error.status = 422; throw(error);      
-    }
-    //add this player to the game and set status to 'active'
-    return game.update({ status: 'active', Player2Id: principalId })
+
+    //Set game status to ended and winner to 0
+    return game.update({ status: 'ended', winner: 0 });
   })
   .then(function(game) {
-    //Set status to 'ended' for any game this player is in - either as player 1 or player 2 - apart from the current game
-    //And set winner to 0 to indicate no winner
-    return models.Game.update(
-      { status: 'ended', winner: 0 },
-      { where: { [Op.and]: [
-        { status: { [Op.in]: ['waitingForPlayers', 'active'] } },
-        { [Op.or]: [ { Player1Id: principalId }, { Player2Id: principalId } ] },
-        { id: { [Op.ne]: game.id } }
-      ]}}
-    );
-  })
-  .then(function() {
+    //Return 204 success even if no change (DELETE is idempotent)
     return callback(null, utilities.okEmptyResponse(event));
   }, function(err) {
     return callback(null, utilities.errorResponse(event, err));
@@ -97,15 +82,16 @@ exports.handler = (event, context, callback) => {
   }
   principalId = parseInt(event.requestContext.authorizer.principalId);
   const method = event.httpMethod || 'undefined';       //like GET
+  const pathParameters = (event.pathParameters == null || !event.pathParameters.proxy) ? [] : event.pathParameters.proxy.split('/');
   //** BOILERPLATE END **//
 
   switch (method) {
-    case 'POST':
-      if ((event.resource.toLowerCase() == '/games/{code}/players') && ('pathParameters' in event)
+    case 'DELETE':
+      if ((event.resource.toLowerCase() == '/games/{code}') && ('pathParameters' in event)
         && ('code' in event.pathParameters)) {
-        //like /games/{code}/players
+        //like /games/{code}/rounds
         if (utilities.isValidGameCode(event.pathParameters.code.toUpperCase())) {
-          postPlayer(event, callback);
+          deleteGame(event, callback);
         }
         else {
           //Custom error message for invalid code format

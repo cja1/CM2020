@@ -13,7 +13,7 @@
   "tags": [
     {
       "name": "Games",
-      "description": "The /games endpoint is the main endpoint used for creating a new game, joining an existing game, playing a round and getting the game state.<br/><br/>The expected order of events is:<ul><li>A player POSTs to the /games endpoint to create a new game. They receive a 4-digit game code. They pass this to the second player. The game status is \"waitingForPlayers\".</li><li>The second player POSTs to the /games/{code}/players endpoint to join the game. Now the game status is \"active\".</li><li>Turn-by-turn, each players POSTs to the /games/{code}/rounds endpoint with the card they want to play and the board position they want to play it. This continues until the game is won.</li><li>When the game is won the game status change to \"ended\"</li><li>At any time a player can get the game state by calling GET on /games/{code} endpoint. This returns the current game state.</li></ul>"
+      "description": "The /games endpoint is the main endpoint used for creating a new game, joining an existing game, playing a round, getting the game state and deleting a game.<br/><br/>The expected order of events is:<ul><li>A player POSTs to the /games endpoint to create a new game. They receive a 4-digit game code. They pass this to the second player. The game status is \"waitingForPlayers\".</li><li>The second player POSTs to the /games/{code}/players endpoint to join the game. Now the game status is \"active\".</li><li>Turn-by-turn, each players POSTs to the /games/{code}/rounds endpoint with the card they want to play and the board position they want to play it. This continues until the game is won.</li><li>When the game is won the game status change to \"ended\"</li><li>At any time a player can get the game state by calling GET on /games/{code} endpoint. This returns the current game state.</li></ul>"
     }
   ],
   "components": {
@@ -62,7 +62,7 @@
       },
       "GameState": {
         "type": "object",
-        "description": "Game state information. Always returns status and players. Other properties depend on game status. If 'waitingForPlayers' then no additional properties. If 'active' then also returns 'nextPlayer', 'boardState' and 'cards'. If 'ended' then also returns 'winner' and 'boardState'.",
+        "description": "Game state information. Always returns 'status' and 'players'. Other properties depend on game status - <ul><li><b>status = 'waitingForPlayers'</b> returns 'status', 'players'</li><li><b>status = 'active'</b> returns 'status', 'players', 'nextPlayer', 'boardState', 'cards'</li><li><b>status = 'ended'</b> returns 'status', 'players', 'winner', 'boardState'</li></ul>",
         "required": [
           "status",
           "players"
@@ -273,7 +273,7 @@
         "tags": [
           "Games"
         ],
-        "summary": "Get the state of this game. Always returns 'status' and 'players' properties. Other properties depend on game 'status'. If 'status' is 'waitingForPlayers' then no additional properties sent. If 'status' is 'active' then also returns 'nextPlayer', 'boardState' and 'cards' properties. If 'status' is 'ended' then also returns 'winner' and 'boardState' properties.",
+        "summary": "Get the state of this game. Always returns 'status' and 'players'. Other properties depend on game status - <ul><li><b>status = 'waitingForPlayers'</b> returns 'status', 'players'</li><li><b>status = 'active'</b> returns 'status', 'players', 'nextPlayer', 'boardState', 'cards'</li><li><b>status = 'ended'</b> returns 'status', 'players', 'winner', 'boardState'</li></ul>",
         "operationId": "Get game state",
         "parameters": [
           {
@@ -304,6 +304,40 @@
           },
           "401": {
             "description": "unauthorised - invalid API token"
+          },
+          "404": {
+            "description": "game not found"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Games"
+        ],
+        "summary": "Delete a new game. This request sets the game 'status' to 'ended' and the 'winner' to 0 to indicate no winner. Note that DELETE is idempotent - as long as the game code is valid for this player then the operation succeeds even if the game state is already set to ended. Note also that a game that has been won (and ended) will keep the existing 'winner' value, so calling DELETE doesn't remove the winner.",
+        "operationId": "Delete a game",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "path",
+            "description": "The unique 4 character code for this game",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "successful operation"
+          },
+          "401": {
+            "description": "unauthorised - invalid Authorisation Bearer token"
           },
           "404": {
             "description": "game not found"
