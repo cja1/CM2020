@@ -67,7 +67,7 @@ function postBot(event, callback) {
 
   //Check game state - must be 'active' and this player part of games else error
   models.Game.findOne({
-    attributes: ['id', 'status', 'Player1Id', 'Player2Id'],
+    attributes: ['id', 'status', 'Player1Id', 'Player2Id', 'nextPlayer'],
     where: { [Op.and]: [
       { code: code.toUpperCase() },
       { status: { [Op.in]: ['waitingForPlayers', 'active'] } }
@@ -79,10 +79,17 @@ function postBot(event, callback) {
       var error = new Error('Game not found: ' + code); error.status = 404; throw(error);
     }
     if (game.status == 'waitingForPlayers') {
-      var error = new Error('This game is waiting for a second player to join'); error.status = 422; throw(error);      
+      var error = new Error('The game is waiting for a second player to join'); error.status = 422; throw(error);      
     }
     if ((game.Player1Id != principalId) && (game.Player2Id != principalId)) {
       var error = new Error('This player is not in this game'); error.status = 422; throw(error);      
+    }
+    //Check this players turn
+    if ((game.nextPlayer == 1) && (game.Player1Id != principalId)) {
+      var error = new Error('Not Player 2\'s turn'); error.status = 422; throw(error);      
+    }
+    if ((game.nextPlayer == 2) && (game.Player2Id != principalId)) {
+      var error = new Error('Not Player 1\'s turn'); error.status = 422; throw(error);      
     }
 
     //Create SQS entry to request the bot play a round for this game code with this user's deviceUUID
