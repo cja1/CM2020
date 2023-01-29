@@ -18,6 +18,10 @@
     {
       "name": "Users",
       "description": "The /users endpoint is to allow the player to get and set their player name (gamer tag) and colour"
+    },
+    {
+      "name": "Bots",
+      "description": "The /bots endpoint is to allow the player to request a bot to play a round on the player's behalf."
     }
   ],
   "components": {
@@ -454,6 +458,54 @@
           },
           "404": {
             "description": "user not found"
+          },
+          "422": {
+            "description": "unprocessable"
+          }
+        }
+      }
+    },
+    "/bots": {
+      "post": {
+        "tags": [
+          "Bots"
+        ],
+        "summary": "Bot play a round in a game. Request the bot to play a round. Players pass in the game code. The bot gets the players cards and plays a round in the game.",
+        "operationId": "Bot play a round",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "code"
+                ],
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "description": "The unique 4 character code for this game",
+                    "example": "12AB"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "successful operation"
+          },
+          "401": {
+            "description": "unauthorised - invalid API token"
+          },
+          "404": {
+            "description": "game not found"
           },
           "422": {
             "description": "unprocessable"

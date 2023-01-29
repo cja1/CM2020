@@ -1277,6 +1277,184 @@ To perform this operation, you must be authenticated by means of one of the foll
 bearerAuth
 </aside>
 
+<h1 id="sequence-api-bots">Bots</h1>
+
+The /bots endpoint is to allow the player to request a bot to play a round on the player's behalf.
+
+## Bot play a round
+
+<a id="opIdBot play a round"></a>
+
+> Code samples
+
+```shell
+# You can also use wget
+curl -X POST https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/bots \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer {access-token}'
+
+```
+
+```javascript
+const inputBody = '{
+  "code": "12AB"
+}';
+const headers = {
+  'Content-Type':'application/json',
+  'Authorization':'Bearer {access-token}'
+};
+
+fetch('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/bots',
+{
+  method: 'POST',
+  body: inputBody,
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+
+```
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+$headers = array(
+    'Content-Type' => 'application/json',
+    'Authorization' => 'Bearer {access-token}',
+);
+
+$client = new \GuzzleHttp\Client();
+
+// Define array of request body.
+$request_body = array();
+
+try {
+    $response = $client->request('POST','https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/bots', array(
+        'headers' => $headers,
+        'json' => $request_body,
+       )
+    );
+    print_r($response->getBody()->getContents());
+ }
+ catch (\GuzzleHttp\Exception\BadResponseException $e) {
+    // handle exception or api errors.
+    print_r($e->getMessage());
+ }
+
+ // ...
+
+```
+
+```python
+import requests
+headers = {
+  'Content-Type': 'application/json',
+  'Authorization': 'Bearer {access-token}'
+}
+
+r = requests.post('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/bots', headers = headers)
+
+print(r.json())
+
+```
+
+```ruby
+require 'rest-client'
+require 'json'
+
+headers = {
+  'Content-Type' => 'application/json',
+  'Authorization' => 'Bearer {access-token}'
+}
+
+result = RestClient.post 'https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/bots',
+  params: {
+  }, headers: headers
+
+p JSON.parse(result)
+
+```
+
+```go
+package main
+
+import (
+       "bytes"
+       "net/http"
+)
+
+func main() {
+
+    headers := map[string][]string{
+        "Content-Type": []string{"application/json"},
+        "Authorization": []string{"Bearer {access-token}"},
+    }
+
+    data := bytes.NewBuffer([]byte{jsonReq})
+    req, err := http.NewRequest("POST", "https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/bots", data)
+    req.Header = headers
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    // ...
+}
+
+```
+
+```java
+URL obj = new URL("https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/bots");
+HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+con.setRequestMethod("POST");
+int responseCode = con.getResponseCode();
+BufferedReader in = new BufferedReader(
+    new InputStreamReader(con.getInputStream()));
+String inputLine;
+StringBuffer response = new StringBuffer();
+while ((inputLine = in.readLine()) != null) {
+    response.append(inputLine);
+}
+in.close();
+System.out.println(response.toString());
+
+```
+
+`POST /bots`
+
+*Bot play a round in a game. Request the bot to play a round. Players pass in the game code. The bot gets the players cards and plays a round in the game.*
+
+> Body parameter
+
+```json
+{
+  "code": "12AB"
+}
+```
+
+<h3 id="bot-play-a-round-parameters">Parameters</h3>
+
+|Name|In|Type|Required|Description|
+|---|---|---|---|---|
+|code|body|string|true|The unique 4 character code for this game|
+
+<h3 id="bot-play-a-round-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|204|[No Content](https://tools.ietf.org/html/rfc7231#section-6.3.5)|successful operation|None|
+|401|[Unauthorized](https://tools.ietf.org/html/rfc7235#section-3.1)|unauthorised - invalid API token|None|
+|404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|game not found|None|
+|422|[Unprocessable Entity](https://tools.ietf.org/html/rfc2518#section-10.3)|unprocessable|None|
+
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+bearerAuth
+</aside>
+
 # Schemas
 
 <h2 id="tocS_Player">Player</h2>

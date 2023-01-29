@@ -4,7 +4,7 @@ const validator = require('validator');
 const _ = require('lodash');
 const utilities = require(__dirname + '/utilities.js');
 
-var principalId, deviceUUID;
+var principalId;
 
 /**
  * @swagger
@@ -288,14 +288,14 @@ function didWin(boardStateArray) {
     }
   }
   //Now test diagonals - downwards
-  for (var col = 0; col < 6; col++) {
-    for (var row = 0; row < 6; row++) {
+  for (var row = 0; row < 6; row++) {
+    for (var col = 0; col < 6; col++) {
       if (areCellsSameDiagDown(boardStateArray, row, col, 5)) { return true; }
     }
   }
   //Now test diagonals - upwards
-  for (var col = 0; col < 6; col++) {
-    for (var row = 5; row < 10; row++) {
+  for (var row = 0; row < 6; row++) {
+    for (var col = 5; col < 10; col++) {
       if (areCellsSameDiagUp(boardStateArray, row, col, 5)) { return true; }
     }
   }
@@ -308,7 +308,7 @@ function areCellsSameRow(boardStateArray, r, c, len) {
   if (startVal == '') { return false; }
   for (var i = 0; i < len; i++) {
     //Increment row by i
-    if (boardStateArray[r + i][c] != startVal) { return false; }
+    if (boardStateArray[r][c + i] != startVal) { return false; }
   }
   return true;
 }
@@ -317,7 +317,7 @@ function areCellsSameCol(boardStateArray, r, c, len) {
   if (startVal == '') { return false; }
   for (var i = 0; i < len; i++) {
     //Increment col by i
-    if (boardStateArray[r][c + i] != startVal) { return false; }
+    if (boardStateArray[r + i][c] != startVal) { return false; }
   }
   return true;
 }
@@ -368,7 +368,6 @@ exports.handler = (event, context, callback) => {
     return callback(null, utilities.errorResponse(event, err));
   }
   principalId = parseInt(event.requestContext.authorizer.principalId);
-  deviceUUID = event.requestContext.authorizer.deviceUUID;
   const method = event.httpMethod || 'undefined';       //like GET
   //** BOILERPLATE END **//
 
