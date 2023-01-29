@@ -4,6 +4,7 @@
   "description": "Sequence Board Game designed for UOL Computer Science CM2020 course",
   "author": "ASD Team 61 (T6G6)",
   "dependencies": {
+    "axios": "^1.2.5",
     "lodash": "^4.17.21",
     "mysql2": "^2.2.5",
     "sequelize": "^6.3.5",

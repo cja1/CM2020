@@ -43,7 +43,7 @@ var principalId;
 function postPlayer(event, callback) {
 
   //already validated code
-  const code = event.pathParameters.code;
+  const code = event.pathParameters.code.toUpperCase();
 
   models.Game.findOne({
     attributes: ['id', 'status', 'Player1Id', 'Player2Id'],

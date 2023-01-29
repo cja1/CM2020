@@ -39,7 +39,7 @@ var principalId;
 function deleteGame(event, callback) {
 
   //already validated code
-  const code = event.pathParameters.code;
+  const code = event.pathParameters.code.toUpperCase();
 
   //Get the game: with this code, where waitingForPlayers, active or ended, and with the requestor as Player1 or Player2
   models.Game.findOne({

@@ -4,7 +4,7 @@ const validator = require('validator');
 const _ = require('lodash');
 const utilities = require(__dirname + '/utilities.js');
 
-var principalId;
+var principalId, deviceUUID;
 
 /**
  * @swagger
@@ -61,7 +61,7 @@ var principalId;
 function postRound(event, callback) {
 
   //already validated code
-  const code = event.pathParameters.code;
+  const code = event.pathParameters.code.toUpperCase();
 
   //validate the body
   const jsonBody = utilities.parseJson(event.body);  //deals with nulls and JSON parse errors
@@ -209,10 +209,10 @@ function validateMove(card, moveRow, moveCol, boardStateArray, nextPlayer) {
 
   if (cardParts[0] != 'J') {
     //Not a Jack
-    const bgWithCards = boardGameWithCards();
+    const bgWithCards = utilities.boardGameWithCards();
     if (bgWithCards[moveRow][moveCol] != card) {
       //the move is to an invalid cell
-      const playOptions = playOptionsForCard(card);
+      const playOptions = utilities.playOptionsForCard(card);
       return { isValid: false, reason: 'The card does not match the board card at this position (' + bgWithCards[moveRow][moveCol] + '). The card ' + card + ' can be played at ' + playOptions.join(' and ') + '.'  };
     }
     if (boardStateArray[moveRow][moveCol] != '') {
@@ -230,7 +230,8 @@ function validateMove(card, moveRow, moveCol, boardStateArray, nextPlayer) {
   if (isOneEyed) {
     //One-eyed Jacks are 'anti-wild'
     //Rule: "remove one marker chip from the game board belonging to your opponent"
-    if (boardStateArray[moveRow][moveCol] != (nextPlayer == 1) ? 'p2' : 'p1') {
+    const opponent = (nextPlayer == 1) ? 'p2' : 'p1';
+    if (boardStateArray[moveRow][moveCol] != opponent) {
       //the board position is not occupied by the opposition
       return { isValid: false, reason: 'There is no opponent card at this position' };
     }
@@ -340,36 +341,6 @@ function areCellsSameDiagUp(boardStateArray, r, c, len) {
   return true;
 }
 
-//Get the board game with the card values. Blank for the corners.
-function boardGameWithCards() {
-  return [
-    ["", "6|D", "7|D", "8|D", "9|D", "10|D", "Q|D", "K|D", "A|D", ""],
-    ["5|D", "3|H", "2|H", "2|S", "3|S", "4|S", "5|S", "6|S", "7|S", "A|C"],
-    ["4|D", "4|H", "K|D", "A|D", "A|C", "K|C", "Q|C", "10|C", "8|S", "K|C"],
-    ["3|D", "5|H", "Q|D", "Q|H", "10|H", "9|H", "8|H", "9|C", "9|S", "Q|C"],
-    ["2|D", "6|H", "10|D", "K|H", "3|H", "2|H", "7|H", "8|C", "10|S", "10|C"],
-    ["A|S", "7|H", "9|D", "A|H", "4|H", "5|H", "6|H", "7|C", "Q|S", "9|C"],
-    ["K|S", "8|H", "8|D", "2|C", "3|C", "4|C", "5|C", "6|C", "K|S", "8|C"],
-    ["Q|S", "9|H", "7|D", "6|D", "5|D", "4|D", "3|D", "2|D", "A|S", "7|C"],
-    ["10|S", "10|H", "Q|H", "K|H", "A|H", "2|C", "3|C", "4|C", "5|C", "6|C"],
-    ["", "9|S", "8|S", "7|S", "6|S", "5|S", "4|S", "3|S", "2|S", ""],
-  ];
-}
-
-//Return the places where this card can be played
-function playOptionsForCard(card) {
-  var out = [];
-  const bg = boardGameWithCards();
-  for (var i = 0; i < 10; i++) {
-    for (var j = 0; j < 10; j++) {
-      if (bg[i][j] == card) {
-        out.push('(' + i + ', ' + j + ')');
-      }
-    }
-  }
-  return out;
-}
-
 function isValidCard(card) {
   card = card.trim();
   const cardParts = card.split('|');
@@ -397,6 +368,7 @@ exports.handler = (event, context, callback) => {
     return callback(null, utilities.errorResponse(event, err));
   }
   principalId = parseInt(event.requestContext.authorizer.principalId);
+  deviceUUID = event.requestContext.authorizer.deviceUUID;
   const method = event.httpMethod || 'undefined';       //like GET
   //** BOILERPLATE END **//
 

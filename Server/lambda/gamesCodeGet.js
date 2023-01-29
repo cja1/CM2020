@@ -104,9 +104,9 @@ var principalId;
 function getGame(event, callback) {
 
   //already validated code
-  const code = event.pathParameters.code;
+  const code = event.pathParameters.code.toUpperCase();
 
-  //Get the game: with this code, where the requestor as Player1 or Player2
+  //Get the game: with this code
   models.Game.findOne({
     attributes: ['id', 'status', 'cardsP1', 'cardsP2', 'nextPlayer', 'winner', 'boardState', 'Player1Id', 'Player2Id'],
     include: [
@@ -114,8 +114,7 @@ function getGame(event, callback) {
       { model: models.User, as: 'Player2', required: false, attributes: ['id', 'name', 'color'] }
     ],
     where: { [Op.and]: [
-      { code: code.toUpperCase() },
-      { [Op.or]: [ { Player1Id: principalId }, { Player2Id: principalId } ] }
+      { code: code.toUpperCase() }
     ]}
   })
   .then(function(game) {
@@ -136,19 +135,26 @@ function getGame(event, callback) {
       players: players
     }
 
-    //If active or ended, add boardState and cards
-    if (game.status == 'active') {
-      gameState['nextPlayer'] = game.nextPlayer;
-      //return cards for this player
-      gameState['cards'] = (game.Player1Id == principalId) ? game.cardsP1.split(',') : game.cardsP2.split(',');
-      //Send the board state as an array of arrays, 10x10
-      gameState['boardState'] = utilities.createBoardStateArray(game.boardState);      
-    }
+    //Test if this requestor is one of the players. If not, only return if game is 'waitingForPlayers'
+    if ((game.Player1.id == principalId) || ((game.Player2 != null) && ('id' in game.Player2) && (game.Player2.id == principalId))) {
+      //If active or ended, add boardState and cards
+      if (game.status == 'active') {
+        gameState['nextPlayer'] = game.nextPlayer;
+        //return cards for this player
+        gameState['cards'] = (game.Player1Id == principalId) ? game.cardsP1.split(',') : game.cardsP2.split(',');
+        //Send the board state as an array of arrays, 10x10
+        gameState['boardState'] = utilities.createBoardStateArray(game.boardState);      
+      }
 
-    //If ended, also add winner
-    if (game.status == 'ended') {
-      gameState['winner'] = (game.winner == null) ? '0' : game.winner //0 signifies no winner (game ended)
-      gameState['boardState'] = utilities.createBoardStateArray(game.boardState);      
+      //If ended, also add winner
+      if (game.status == 'ended') {
+        gameState['winner'] = (game.winner == null) ? '0' : game.winner //0 signifies no winner (game ended)
+        gameState['boardState'] = utilities.createBoardStateArray(game.boardState);      
+      }
+    }
+    else if (game.status != 'waitingForPlayers') {
+      //This is an error: a player not in the game requesting info about the game that has started or ended
+      var error = new Error('This player is not playing in this game'); error.status = 404; throw(error);
     }
 
     console.log(gameState);

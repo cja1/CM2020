@@ -315,7 +315,7 @@ AuthPolicy.prototype = (function AuthPolicyClass() {
   };
 }());
 
-function CreateAuthResponse(principalId, awsAccountId, apiOptions, rps) {
+function CreateAuthResponse(principalId, awsAccountId, apiOptions, rps, deviceUUID) {
 
   const policy = new AuthPolicy(principalId, awsAccountId, apiOptions);
 
@@ -344,6 +344,10 @@ function CreateAuthResponse(principalId, awsAccountId, apiOptions, rps) {
     policy.denyAllMethods();
   }
   const authResponse = policy.build();
+  //Set the deviceUUID too - as used for bot auto play
+  authResponse.context = {
+    deviceUUID: deviceUUID
+  };
   return authResponse;
 }
 
@@ -402,7 +406,7 @@ exports.handler = (event, context, callback) => {
     //Define allowed methods and endpoints
     const rps = { 'games': 'POST', 'games/*': ['POST', 'GET', 'DELETE'], 'users': ['GET', 'PATCH'] };
 
-    const authResponse = CreateAuthResponse(principalId, awsAccountId, apiOptions, rps);
+    const authResponse = CreateAuthResponse(principalId, awsAccountId, apiOptions, rps, uuid);
     return callback(null, authResponse);
   }, function(err) {
     console.log(err);
