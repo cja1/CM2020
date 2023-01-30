@@ -20,6 +20,9 @@ module.exports = function(sequelize, DataTypes) {
     cardPos: {
       type: DataTypes.INTEGER
     },
+    handsPlayed: {
+      type: DataTypes.INTEGER
+    },
     nextPlayer: {
       type: DataTypes.INTEGER
     },
@@ -31,6 +34,10 @@ module.exports = function(sequelize, DataTypes) {
     },
     boardState: {
       type: DataTypes.STRING(1024)
+    },
+    isPlayer1Bot: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     },
     isPlayer2Bot: {
       type: DataTypes.BOOLEAN,

@@ -6,8 +6,6 @@ const utilities = require(__dirname + '/utilities.js');
 
 var principalId, isBot1, isBot2;
 
-const CARDS_PER_PLAYER = 7; //sequence rules: 7 cards per player for a 2 person game
-
 /**
  * @swagger
  *
@@ -67,13 +65,16 @@ function postGame(event, callback) {
 
   Promise.resolve()
   .then(function() {
-    //If not bot1 creating this game, set status to 'ended' and winner to 0 for any game this player is in - either as player 1 or player 2
-    if (isBot1) {
+    //If not bot creating this game, set status to 'ended' and winner to 0 for any game this player is in - either as player 1 or player 2
+    if (isBot1 || isBot2) {
       return Promise.resolve();
     }
     return models.Game.update(
       { status: 'ended', winner: 0 },
-      { where: { [Op.and]: [ { status: { [Op.in]: ['waitingForPlayers', 'active']} }, { [Op.or]: [ { Player1Id: principalId }, { Player2Id: principalId } ] } ] } }
+      { where: { [Op.and]: [
+        { status: { [Op.in]: ['waitingForPlayers', 'active']} },
+        { [Op.or]: [ { Player1Id: principalId }, { Player2Id: principalId } ] }
+      ]}}
     );
   })
   .then(function() {
@@ -85,7 +86,7 @@ function postGame(event, callback) {
     var cardsP2 = [];
 
     //Deal out first 6 cards to the players
-    for (var i = 0; i < CARDS_PER_PLAYER * 2; i++) {
+    for (var i = 0; i < utilities.CARDS_PER_PLAYER * 2; i++) {
       if (i % 2 == 0) {
         cardsP1.push(shuffled[i]);
       }
@@ -101,7 +102,7 @@ function postGame(event, callback) {
       cardsP1: cardsP1.join(','),
       cardsP2: cardsP2.join(','),
       cards: shuffled.join(','),
-      cardPos: CARDS_PER_PLAYER * 2,
+      cardPos: utilities.CARDS_PER_PLAYER * 2,
       nextPlayer: 1,
       boardState: generateEmptyBoardState().join(','),
       isPlayer1Bot: isBot1,

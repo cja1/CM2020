@@ -156,9 +156,10 @@ function getGame(event, callback) {
         gameState['boardState'] = utilities.createBoardStateArray(game.boardState);      
       }
 
-      //If ended, also add winner
+      //If ended, also add winner and winning sequence
       if (game.status == 'ended') {
-        gameState['winner'] = game.winner
+        gameState['winner'] = game.winner;
+        gameState['winningSequence'] = JSON.parse(game.winningSequence);
         gameState['boardState'] = utilities.createBoardStateArray(game.boardState);      
       }
     }

@@ -44,15 +44,17 @@ function postPlayer(event, callback) {
 
   //already validated code
   const code = event.pathParameters.code.toUpperCase();
+  var game;
 
   models.Game.findOne({
-    attributes: ['id', 'status', 'Player1Id', 'Player2Id'],
+    attributes: ['id', 'status', 'Player1Id', 'Player2Id', 'isPlayer1Bot'],
     where: { [Op.and]: [
       { code: code.toUpperCase() },
       { status: { [Op.in]: ['waitingForPlayers', 'active'] } }
     ]}
   })
-  .then(function(game) {
+  .then(function(thisGame) {
+    game = thisGame;  //save to function scope
     console.log('game', game);
     if (game == null) {
       var error = new Error('Game not found: ' + code); error.status = 404; throw(error);
@@ -83,6 +85,14 @@ function postPlayer(event, callback) {
     );
   })
   .then(function() {
+    //If isPlayer1Bot then the second player has just joined and we want to trigger player 1 bot to play a round
+    if (game.isPlayer1Bot) {
+      console.log('Creating SQS entry to trigger Bot 1 play a round');
+      return utilities.createSQSEntryForBot(code, utilities.BOT1_DEVICE_UUID);
+    }
+    return Promise.resolve();
+  })
+  .then(function(game) {
     return callback(null, utilities.okEmptyResponse(event));
   }, function(err) {
     console.log(err);

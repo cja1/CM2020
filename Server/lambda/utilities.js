@@ -1,4 +1,5 @@
 var AWS = require('aws-sdk');
+const { v4: uuidv4 } = require('uuid');
 
 //Consts
 const accessControlHeaders = {
@@ -9,6 +10,8 @@ const accessControlHeaders = {
 const GAME_CODE_LENGTH = 4;
 const BOT1_DEVICE_UUID = '00000000-9ff1-4b77-8fdf-e626e8f98e94';
 const BOT2_DEVICE_UUID = '11111111-9ff1-4b77-8fdf-e626e8f98e94';
+const CARDS_PER_PLAYER = 7; //sequence rules: 7 cards per player for a 2 person game
+const MAX_HANDS_PLAYED = 110;  //always stop if this many hands (shouldn't happen - fallback)
 
 function okResponse(event, jsonObject) {
   return {
@@ -119,7 +122,9 @@ function createSQSEntryForBot(code, deviceUUID) {
   var sqs = new AWS.SQS({apiVersion: '2012-11-05'});
   const params = {
     MessageBody: JSON.stringify(body),
-    QueueUrl: 'https://sqs.eu-west-1.amazonaws.com/705936070782/sequenceBot'
+    QueueUrl: 'https://sqs.eu-west-1.amazonaws.com/705936070782/sequenceBot.fifo',
+    MessageGroupId: 'BotRequests',
+    MessageDeduplicationId: uuidv4(),
   };
   return sqs.sendMessage(params).promise();
 }
@@ -163,9 +168,76 @@ function playOptionsForCard(card, asJSON) {
   return out;
 }
 
+function getMovesForGame(game) {
+  var moves = [];
+
+  //Create possible moves for all cards
+  game.cards.forEach((card) => {
+    const movesForCard = getMovesForCard(card, game.boardState, game.nextPlayer);
+    moves = moves.concat(movesForCard);
+  });
+  console.log(moves);
+  return moves;
+}
+
+
+function getMovesForCard(card, boardState, nextPlayer) {
+  const cardParts = card.split('|');
+  var moves = []
+  if (cardParts[0] != 'J') {
+    //Not a Jack
+    const playOptions = playOptionsForCard(card, true); //true to get array of arrays back as opposed to array of strings
+    playOptions.forEach((playOption) => {
+      if (boardState[playOption[0]][playOption[1]] == '') {
+        //Board is empty so valid move for this card
+        moves.push({ card: card, moveRow: playOption[0], moveCol: playOption[1] });
+      }
+    });
+    return moves;
+  }
+
+  //A Jack. See if one-eyed or not (Spades and Hearts are one-eyed)
+  const isOneEyed = (['S', 'H'].includes(cardParts[1]));
+  if (isOneEyed) {
+    //One-eyed Jacks are 'anti-wild'
+    //Rule: "remove one marker chip from the game board belonging to your opponent"
+    //So valid moves are all places where boardState is nextPlayer
+    const opponent = (nextPlayer == 1) ? 'p2' : 'p1';
+    for (var i = 0; i < 10; i++) {
+      for (var j = 0; j < 10; j++) {
+        if (boardState[i][j] == opponent) {
+          //The board position is occupied by the opponent
+          moves.push({ card: card, moveRow: i, moveCol: j });
+        }
+      }
+    }
+    return moves;
+  }
+
+  //Two-eyed Jacks are 'wild'
+  //Rule: "place one of your marker chips on any open space on the game board"
+  //So find all open spaces
+  for (var i = 0; i < 10; i++) {
+    for (var j = 0; j < 10; j++) {
+      //ignore corners
+      if ((i == 0 && j == 0) || (i == 9 && j == 0) || (i == 0 && j == 9) || (i == 9 && j == 9)) {
+        continue;
+      }
+      if (boardState[i][j] == '') {
+        //The board position is empty by the opponent
+        moves.push({ card: card, moveRow: i, moveCol: j });
+      }
+    }
+  }
+  return moves;
+}
+
+
 module.exports = {
   BOT1_DEVICE_UUID: BOT1_DEVICE_UUID,
   BOT2_DEVICE_UUID: BOT2_DEVICE_UUID,
+  CARDS_PER_PLAYER: CARDS_PER_PLAYER,
+  MAX_HANDS_PLAYED: MAX_HANDS_PLAYED,
   okResponse: okResponse,
   okEmptyResponse: okEmptyResponse,
   errorResponse: errorResponse,
@@ -178,5 +250,7 @@ module.exports = {
   randomPlayerColor: randomPlayerColor,
   createSQSEntryForBot: createSQSEntryForBot,
   boardGameWithCards: boardGameWithCards,
-  playOptionsForCard: playOptionsForCard
+  playOptionsForCard: playOptionsForCard,
+  getMovesForGame: getMovesForGame,
+  getMovesForCard: getMovesForCard
 };

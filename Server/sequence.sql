@@ -18,6 +18,7 @@ CREATE TABLE `Games` (
   `cardsP2` varchar(1024) COLLATE utf8_bin DEFAULT NULL,
   `cards` varchar(1024) COLLATE utf8_bin DEFAULT NULL,
   `cardPos` int(11) DEFAULT NULL,
+  `handsPlayed` int(11) DEFAULT NULL,
   `nextPlayer` int(11) DEFAULT NULL,
   `winner` int(11) DEFAULT NULL,
   `winningSequence` varchar(1024) COLLATE utf8_bin DEFAULT NULL,
