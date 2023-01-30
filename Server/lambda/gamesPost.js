@@ -103,6 +103,7 @@ function postGame(event, callback) {
       cardsP2: cardsP2.join(','),
       cards: shuffled.join(','),
       cardPos: utilities.CARDS_PER_PLAYER * 2,
+      handsPlayed: 0,
       nextPlayer: 1,
       boardState: generateEmptyBoardState().join(','),
       isPlayer1Bot: isBot1,

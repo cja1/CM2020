@@ -150,8 +150,11 @@ function getGame(event, callback) {
       //If active or ended, add boardState and cards
       if (game.status == 'active') {
         gameState['nextPlayer'] = game.nextPlayer;
-        //return cards for this player
-        gameState['cards'] = (game.Player1Id == principalId) ? game.cardsP1.split(',') : game.cardsP2.split(',');
+
+        //return cards for this player. If empty, blank
+        const cards = (game.Player1Id == principalId) ? game.cardsP1 : game.cardsP2;
+        gameState['cards'] = (cards == '') ? [] : cards.split(',');
+
         //Send the board state as an array of arrays, 10x10
         gameState['boardState'] = utilities.createBoardStateArray(game.boardState);      
       }

@@ -131,8 +131,11 @@ function postRound(event, callback) {
     }
 
     //Check the player has this card in their hand
-    const cardsPlayer = (game.nextPlayer == 1) ? game.cardsP1.split(',') : game.cardsP2.split(',');
-    const cardsOpponent = (game.nextPlayer == 2) ? game.cardsP1.split(',') : game.cardsP2.split(',');
+    var cardsPlayer = (game.nextPlayer == 1) ? game.cardsP1 : game.cardsP2;
+    cardsPlayer = (cardsPlayer == '') ? [] : cardsPlayer.split(',');
+
+    //var cardsOpponent = (game.nextPlayer == 2) ? game.cardsP1 : game.cardsP2;
+    //cardsOpponent = (cardsOpponent == '') ? [] : cardsOpponent.split(',');
 
     if (!cardsPlayer.includes(card)) {
       var error = new Error('The card ' + card + ' is not in ' + ((game.nextPlayer == 1) ? 'Player 1' : 'Player 2') + '\'s hand'); error.status = 422; throw(error);            
@@ -170,9 +173,9 @@ function postRound(event, callback) {
       cardPos += 1;
     }
 
-    //If no cards in both player's hand OR played more than 110 hands (should never happen) then stop
-    if (((cardsPlayer.length == 0) && (cardsOpponent.length == 0)) || game.handsPlayed > utilities.MAX_HANDS_PLAYED) {
-      return game.update({ status: 'ended', winner: 0, boardState: boardState });      
+    //If no cards in player's hand OR played more than MAX_HANDS_PLAYED hands (should never happen) then stop
+    if ((cardsPlayer.length == 0)|| (game.handsPlayed > utilities.MAX_HANDS_PLAYED)) {
+      return game.update({ status: 'ended', winner: 0, boardState: boardState });   
     }
 
     //Have they won?
@@ -323,7 +326,7 @@ function getWinState(boardStateArray) {
   //Now test all cols from 0..9 and rows from 0..5
   for (var col = 0; col < 10; col++) {
     for (var row = 0; row < 6; row++) {
-      if (areCellsSameRow(boardStateArray, row, col, 5)) { return { didWin: true, winningSequence: winningSeqCol(row, col) }; }
+      if (areCellsSameCol(boardStateArray, row, col, 5)) { return { didWin: true, winningSequence: winningSeqCol(row, col) }; }
     }
   }
   //Now test diagonals - downwards to right
