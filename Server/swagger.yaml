@@ -84,6 +84,14 @@ components:
         - ''
       items:
         type: string
+    BoardPosition:
+      type: array
+      description: 'An x, y cooridnate on the board'
+      example:
+        - 0
+        - 1
+      items:
+        type: int32
     GameState:
       type: object
       description: >-
@@ -142,6 +150,11 @@ components:
             that 0 indicates that no player won - ie game was cancelled before a
             Player won the game.
           example: 2
+        winningSequence:
+          type: array
+          description: The array of board positions that represent the winning sequence.
+          items:
+            $ref: '#/components/schemas/BoardPosition'
     User:
       type: object
       description: User information
@@ -167,6 +180,19 @@ paths:
         'XY89'. This code is passed to the other player allowing them to join
         the game by POSTing to the /games/{code}/players endpoint.
       operationId: Create a game
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isPlayer2Bot:
+                  type: boolean
+                  description: >-
+                    A flag indicating the game should be created with player 2
+                    as a bot - ie play against the computer.
+                  example: false
+        required: false
       security:
         - bearerAuth: []
       responses:

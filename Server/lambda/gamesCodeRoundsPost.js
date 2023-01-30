@@ -77,11 +77,11 @@ function postRound(event, callback) {
 
   //Check params are valid
   //Card
-  if (!isValidCard(jsonBody['card'])) {
+  if (!isValidCard(jsonBody['card'].toUpperCase())) {
     var error = new Error('Card "' + jsonBody['card'] + '" is not a valid card'); error.status = 422;
     return callback(null, utilities.errorResponse(event, error));          
   }
-  const card = jsonBody['card'];
+  const card = jsonBody['card'].toUpperCase();
 
   //moveRow. Note: supports both int and string versions. Use + '' to coerce numbers to string.
   if (!validator.isInt(jsonBody['moveRow'] + '')) {
@@ -107,7 +107,7 @@ function postRound(event, callback) {
 
   //Get the game: with this code, where active or waitingForPlayers, and with the requestor as Player1 or Player2
   models.Game.findOne({
-    attributes: ['id', 'status', 'cardsP1', 'cardsP2', 'cards', 'cardPos', 'nextPlayer', 'winner', 'boardState', 'Player1Id', 'Player2Id', 'isPlayer2Bot'],
+    attributes: ['id', 'status', 'cardsP1', 'cardsP2', 'cards', 'cardPos', 'nextPlayer', 'winner', 'boardState', 'Player1Id', 'Player2Id', 'isPlayer1Bot', 'isPlayer2Bot'],
     where: { [Op.and]: [
       { code: code.toUpperCase() },
       { status: { [Op.in]: ['waitingForPlayers', 'active'] }},
@@ -151,15 +151,16 @@ function postRound(event, callback) {
     cardsPlayer.splice(cardsPlayer.indexOf(card), 1);;
     //...and deal the next card to them - if cards left
     var cardPos = game.cardPos;
-    if (cardPos < 52) {
+    if (cardPos < game.cards.length) {
       cardsPlayer.push(game.cards.split(',')[cardPos]);      
       cardPos += 1;
     }
 
     //Have they won?
-    if (didWin(boardStateArray)) {
-      //Update the winner and game state
-      return game.update({ status: 'ended', winner: game.nextPlayer, boardState: boardState });
+    const winState = getWinState(boardStateArray);
+    if (winState.didWin) {
+      //Update the winner, game state and winningSequence
+      return game.update({ status: 'ended', winner: game.nextPlayer, boardState: boardState, winningSequence: JSON.stringify(winState.winningSequence) });
     }
     else {
       //Update the nextPlayer, boardState and the cardPos in the pack...
@@ -175,11 +176,16 @@ function postRound(event, callback) {
     }
   })
   .then(function(game) {
-    if (!game.isPlayer2Bot) {
-      return Promise.resolve();
+    //see if bot plays next
+    //If yes, create an SQS entry to signal the bot to play a round in this game
+    if ((game.nextPlayer == 1) && game.isPlayer1Bot) {
+      return utilities.createSQSEntryForBot(code, utilities.BOT1_DEVICE_UUID);
     }
-    //Create an SQS entry to signal the bot to play a round in this game
-    return utilities.createSQSEntryForBot(code);
+    if ((game.nextPlayer == 2) && game.isPlayer2Bot) {
+      return utilities.createSQSEntryForBot(code, utilities.BOT2_DEVICE_UUID);
+    }
+    //Neither player a bot
+    return Promise.resolve();
   })
   .then(function() {  
     console.log('Successfully played round', principalId, card, moveRow, moveCol);
@@ -253,50 +259,56 @@ function validateMove(card, moveRow, moveCol, boardStateArray, nextPlayer) {
   return { isValid: true, boardStateArray: boardStateArray };    
 }
 
+//Helpers to creaete an array of points that represents a wiining sequence
+function winningSeqRow(r,c) { return [ [r, c], [r, c + 1], [r, c + 2], [r, c + 3], [r, c + 4] ]; }
+function winningSeqCol(r,c) { return [ [r, c], [r + 1, c], [r + 2, c], [r + 3, c], [r + 4, c] ]; }
+function winningSeqDiagDR(r,c) { return [ [r, c], [r + 1, c + 1], [r + 2, c + 2], [r + 3, c + 3], [r + 4, c + 4] ]; }
+function winningSeqDiagUL(r,c) { return [ [r, c], [r - 1, c + 1], [r - 2, c + 2], [r - 3, c + 3], [r - 4, c + 4] ]; }
+
 //Returns true if a player has won
-function didWin(boardStateArray) {
+function getWinState(boardStateArray) {
   //Test corners first - only need 4 long
   //Top row
-  if (areCellsSameRow(boardStateArray, 1, 0, 4)) { return true; }
-  if (areCellsSameRow(boardStateArray, 5, 0, 4)) { return true; }
+  if (areCellsSameRow(boardStateArray, 0, 1, 4)) { return { winState: true, winningSequence: winningSeqRow(0, 0) }; }
+  if (areCellsSameRow(boardStateArray, 0, 5, 4)) { return { winState: true, winningSequence: winningSeqRow(0, 5) }; }
   //Bottom row
-  if (areCellsSameRow(boardStateArray, 1, 9, 4)) { return true; }
-  if (areCellsSameRow(boardStateArray, 5, 9, 4)) { return true; }
+  if (areCellsSameRow(boardStateArray, 9, 1, 4)) { return { winState: true, winningSequence: winningSeqRow(9, 0) }; }
+  if (areCellsSameRow(boardStateArray, 9, 5, 4)) { return { winState: true, winningSequence: winningSeqRow(9, 5) }; }
   //First col
-  if (areCellsSameCol(boardStateArray, 0, 1, 4)) { return true; }
-  if (areCellsSameCol(boardStateArray, 0, 5, 4)) { return true; }
+  if (areCellsSameCol(boardStateArray, 1, 0, 4)) { return { winState: true, winningSequence: winningSeqCol(0, 0) }; }
+  if (areCellsSameCol(boardStateArray, 5, 0, 4)) { return { winState: true, winningSequence: winningSeqCol(5, 0) }; }
   //Last col
-  if (areCellsSameCol(boardStateArray, 9, 1, 4)) { return true; }
-  if (areCellsSameCol(boardStateArray, 9, 5, 4)) { return true; }
-  //Diagonals - downwards
-  if (areCellsSameDiagDown(boardStateArray, 1, 1, 4)) { return true; }
-  if (areCellsSameDiagDown(boardStateArray, 5, 5, 4)) { return true; }
-  //Diagonals - upwards
-  if (areCellsSameDiagUp(boardStateArray, 1, 8, 4)) { return true; }
-  if (areCellsSameDiagUp(boardStateArray, 5, 5, 4)) { return true; }
+  if (areCellsSameCol(boardStateArray, 1, 9, 4)) { return { winState: true, winningSequence: winningSeqCol(0, 9) }; }
+  if (areCellsSameCol(boardStateArray, 5, 9, 4)) { return { winState: true, winningSequence: winningSeqCol(5, 9) }; }
+  //Diagonals - downwards to right
+  if (areCellsSameDiagDownRight(boardStateArray, 1, 1, 4)) { return { winState: true, winningSequence: winningSeqDiagDR(0, 0) }; }
+  if (areCellsSameDiagDownRight(boardStateArray, 5, 5, 4)) { return { winState: true, winningSequence: winningSeqDiagDR(5, 5) }; }
+  //Diagonals - Upwards to right
+  if (areCellsSameDiagUpRight(boardStateArray, 4, 5, 4)) { return { winState: true, winningSequence: winningSeqDiagUL(4, 5) }; }
+  if (areCellsSameDiagUpRight(boardStateArray, 8, 1, 4)) { return { winState: true, winningSequence: winningSeqDiagUL(9, 0) }; }
 
   //Now test all rows from 0..9 and cols from 0..5
   for (var row = 0; row < 10; row++) {
     for (var col = 0; col < 6; col++) {
-      if (areCellsSameRow(boardStateArray, row, col, 5)) { return true; }
+      if (areCellsSameRow(boardStateArray, row, col, 5)) { return { winState: true, winningSequence: winningSeqRow(row, col) }; }
     }
   }
   //Now test all cols from 0..9 and rows from 0..5
   for (var col = 0; col < 10; col++) {
     for (var row = 0; row < 6; row++) {
-      if (areCellsSameRow(boardStateArray, row, col, 5)) { return true; }
+      if (areCellsSameRow(boardStateArray, row, col, 5)) { return { winState: true, winningSequence: winningSeqCol(row, col) }; }
     }
   }
-  //Now test diagonals - downwards
+  //Now test diagonals - downwards to right
   for (var row = 0; row < 6; row++) {
     for (var col = 0; col < 6; col++) {
-      if (areCellsSameDiagDown(boardStateArray, row, col, 5)) { return true; }
+      if (areCellsSameDiagDownRight(boardStateArray, row, col, 5)) { return { winState: true, winningSequence: winningSeqDiagDR(row, col) }; }
     }
   }
-  //Now test diagonals - upwards
-  for (var row = 0; row < 6; row++) {
-    for (var col = 5; col < 10; col++) {
-      if (areCellsSameDiagUp(boardStateArray, row, col, 5)) { return true; }
+  //Now test diagonals - upwards to left
+  for (var row = 4; row < 10; row++) {
+    for (var col = 0; col < 6; col++) {
+      if (areCellsSameDiagUpRight(boardStateArray, row, col, 5)) { return { winState: true, winningSequence: winningSeqDiagUL(row, col) }; }
     }
   }
   return false;
@@ -307,7 +319,7 @@ function areCellsSameRow(boardStateArray, r, c, len) {
   const startVal = boardStateArray[r][c];
   if (startVal == '') { return false; }
   for (var i = 0; i < len; i++) {
-    //Increment row by i
+    //Row stays fixed, column increments
     if (boardStateArray[r][c + i] != startVal) { return false; }
   }
   return true;
@@ -316,13 +328,13 @@ function areCellsSameCol(boardStateArray, r, c, len) {
   const startVal = boardStateArray[r][c];
   if (startVal == '') { return false; }
   for (var i = 0; i < len; i++) {
-    //Increment col by i
+    //Column stays fixed, increment row
     if (boardStateArray[r + i][c] != startVal) { return false; }
   }
   return true;
 }
 //Need to deal with diagonal that increments on both - ie downward and increments on row / decrements on col - ie upward
-function areCellsSameDiagDown(boardStateArray, r, c, len) {
+function areCellsSameDiagDownRight(boardStateArray, r, c, len) {
   const startVal = boardStateArray[r][c];
   if (startVal == '') { return false; }
   for (var i = 0; i < len; i++) {
@@ -331,12 +343,12 @@ function areCellsSameDiagDown(boardStateArray, r, c, len) {
   }
   return true;
 }
-function areCellsSameDiagUp(boardStateArray, r, c, len) {
+function areCellsSameDiagUpRight(boardStateArray, r, c, len) {
   const startVal = boardStateArray[r][c];
   if (startVal == '') { return false; }
   for (var i = 0; i < len; i++) {
-    //Increment row, decrement column by i
-    if (boardStateArray[r + i][c - i] != startVal) { return false; }
+    //Decrement row, increment column by i
+    if (boardStateArray[r - i][c + i] != startVal) { return false; }
   }
   return true;
 }

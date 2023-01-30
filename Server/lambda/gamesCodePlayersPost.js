@@ -4,7 +4,7 @@ const validator = require('validator');
 const _ = require('lodash');
 const utilities = require(__dirname + '/utilities.js');
 
-var principalId;
+var principalId, isBot1, isBot2;
 
 /**
  * @swagger
@@ -67,8 +67,12 @@ function postPlayer(event, callback) {
     return game.update({ status: 'active', Player2Id: principalId })
   })
   .then(function(game) {
-    //Set status to 'ended' for any game this player is in - either as player 1 or player 2 - apart from the current game
-    //And set winner to 0 to indicate no winner
+    //If player is a bot, no action
+    if (isBot1 || isBot2) {
+      return Promise.resolve();
+    }
+    //Player is not a bot. Set status to 'ended' and set winner to 0 to indicate no winner
+    //for any waitingForPlayers or active game this player is in - apart from the current game
     return models.Game.update(
       { status: 'ended', winner: 0 },
       { where: { [Op.and]: [
@@ -98,6 +102,8 @@ exports.handler = (event, context, callback) => {
     return callback(null, utilities.errorResponse(event, err));
   }
   principalId = parseInt(event.requestContext.authorizer.principalId);
+  isBot1 = event.requestContext.authorizer.isBot1 == 'true';
+  isBot2 = event.requestContext.authorizer.isBot2 == 'true';
   const method = event.httpMethod || 'undefined';       //like GET
   //** BOILERPLATE END **//
 

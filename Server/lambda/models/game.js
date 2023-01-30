@@ -26,6 +26,9 @@ module.exports = function(sequelize, DataTypes) {
     winner: {
       type: DataTypes.INTEGER
     },
+    winningSequence: {
+      type: DataTypes.STRING(1024)
+    },
     boardState: {
       type: DataTypes.STRING(1024)
     },

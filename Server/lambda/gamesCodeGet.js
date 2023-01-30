@@ -35,6 +35,13 @@ var principalId;
  *       items:
  *         type: string
  *
+ *     BoardPosition:
+ *       type: array
+ *       description: An x, y cooridnate on the board
+ *       example: [0,1]
+ *       items:
+ *         type: int32
+ * 
  *     GameState:
  *       type: object
  *       description: Game state information. Always returns 'status' and 'players'. Other properties depend on game status - <ul><li><b>status = 'waitingForPlayers'</b> returns 'status', 'players'</li><li><b>status = 'active'</b> returns 'status', 'players', 'nextPlayer', 'boardState', 'cards'</li><li><b>status = 'ended'</b> returns 'status', 'players', 'winner', 'boardState'</li></ul>
@@ -69,6 +76,11 @@ var principalId;
  *           type: int32
  *           description: The number of the player who won. 1 = Player 1, 2 = Player 2. Note that 0 indicates that no player won - ie game was cancelled before a Player won the game.
  *           example: 2
+ *         winningSequence:
+ *           type: array
+ *           description: The array of board positions that represent the winning sequence.
+ *           items:
+ *             $ref: '#/components/schemas/BoardPosition' 
  * 
  * /games/{code}:
  *   get:
@@ -108,14 +120,12 @@ function getGame(event, callback) {
 
   //Get the game: with this code
   models.Game.findOne({
-    attributes: ['id', 'status', 'cardsP1', 'cardsP2', 'nextPlayer', 'winner', 'boardState', 'Player1Id', 'Player2Id'],
+    attributes: ['id', 'status', 'cardsP1', 'cardsP2', 'nextPlayer', 'winner', 'winningSequence', 'boardState', 'Player1Id', 'Player2Id'],
     include: [
       { model: models.User, as: 'Player1', required: true, attributes: ['id', 'name', 'color'] },
       { model: models.User, as: 'Player2', required: false, attributes: ['id', 'name', 'color'] }
     ],
-    where: { [Op.and]: [
-      { code: code.toUpperCase() }
-    ]}
+    where: { code: code }
   })
   .then(function(game) {
     if (game == null) {
@@ -148,7 +158,7 @@ function getGame(event, callback) {
 
       //If ended, also add winner
       if (game.status == 'ended') {
-        gameState['winner'] = (game.winner == null) ? '0' : game.winner //0 signifies no winner (game ended)
+        gameState['winner'] = game.winner
         gameState['boardState'] = utilities.createBoardStateArray(game.boardState);      
       }
     }

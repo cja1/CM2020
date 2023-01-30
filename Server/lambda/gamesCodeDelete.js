@@ -59,7 +59,7 @@ function deleteGame(event, callback) {
       return Promise.resolve();
     }
 
-    //Set game status to ended and winner to 0
+    //Set game status to ended and winner to 0 to indicate no winner
     return game.update({ status: 'ended', winner: 0 });
   })
   .then(function(game) {

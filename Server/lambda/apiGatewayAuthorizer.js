@@ -344,9 +344,12 @@ function CreateAuthResponse(principalId, awsAccountId, apiOptions, rps, deviceUU
     policy.denyAllMethods();
   }
   const authResponse = policy.build();
-  //Set the deviceUUID too - as used for bot auto play
+
+  //Set the deviceUUID  and isBot flags - as used for bot auto play
   authResponse.context = {
-    deviceUUID: deviceUUID
+    deviceUUID: deviceUUID,
+    isBot1: (deviceUUID == utilities.BOT1_DEVICE_UUID),
+    isBot2: (deviceUUID == utilities.BOT2_DEVICE_UUID),    
   };
   return authResponse;
 }
@@ -387,14 +390,15 @@ exports.handler = (event, context, callback) => {
   })
   .then(function(user) {
     if (user == null) {
-      //User doesn't exist. Create user if request is POST on /games or POST on /games/{code}/players
-      if ((method == 'post') && (apiGatewayArnTmp[3].toLowerCase() == 'games')
-        && ((apiGatewayArnTmp.length == 4) || ((apiGatewayArnTmp.length == 6) && (apiGatewayArnTmp[5].toLowerCase() == 'players')))) {
+      //User doesn't exist. Create user if request is POST or GET on /games endpoint
+      if (((method == 'post') || (method == 'get')) && (apiGatewayArnTmp[3].toLowerCase() == 'games')) {
         //Create
         return models.User.create({ deviceUUID: uuid, name: utilities.randomPlayerName(), color: utilities.randomPlayerColor() });
       }
       else {
-        return callback('Unauthorized');
+        //Trying to make a request with an invalid device UUID
+        console.log(apiGatewayArnTmp);
+        var error = new Error('Invalid request method ' + method); error.status = 401; throw(error);      
       }
     }
     return Promise.resolve(user);

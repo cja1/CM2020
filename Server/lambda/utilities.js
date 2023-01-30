@@ -7,6 +7,8 @@ const accessControlHeaders = {
 };
 
 const GAME_CODE_LENGTH = 4;
+const BOT1_DEVICE_UUID = '00000000-9ff1-4b77-8fdf-e626e8f98e94';
+const BOT2_DEVICE_UUID = '11111111-9ff1-4b77-8fdf-e626e8f98e94';
 
 function okResponse(event, jsonObject) {
   return {
@@ -112,12 +114,8 @@ function randomPlayerColor() {
 }
 
 function createSQSEntryForBot(code, deviceUUID) {
-  deviceUUID = deviceUUID || false;
-  var body = { code: code };
-  if (deviceUUID !== false) {
-    body['deviceUUID'] = deviceUUID;
-  }
-  
+  var body = { code: code, deviceUUID: deviceUUID };
+  console.log('About to send SQS', body);
   var sqs = new AWS.SQS({apiVersion: '2012-11-05'});
   const params = {
     MessageBody: JSON.stringify(body),
@@ -166,6 +164,8 @@ function playOptionsForCard(card, asJSON) {
 }
 
 module.exports = {
+  BOT1_DEVICE_UUID: BOT1_DEVICE_UUID,
+  BOT2_DEVICE_UUID: BOT2_DEVICE_UUID,
   okResponse: okResponse,
   okEmptyResponse: okEmptyResponse,
   errorResponse: errorResponse,

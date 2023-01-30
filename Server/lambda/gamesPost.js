@@ -4,7 +4,9 @@ const validator = require('validator');
 const _ = require('lodash');
 const utilities = require(__dirname + '/utilities.js');
 
-var principalId;
+var principalId, isBot1, isBot2;
+
+const CARDS_PER_PLAYER = 7; //sequence rules: 7 cards per player for a 2 person game
 
 /**
  * @swagger
@@ -15,6 +17,17 @@ var principalId;
  *     - Games
  *     summary: Create a new game. This request returns the newly created game code like 'XY89'. This code is passed to the other player allowing them to join the game by POSTing to the /games/{code}/players endpoint.
  *     operationId: Create a game
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               isPlayer2Bot:
+ *                 type: boolean
+ *                 description: A flag indicating the game should be created with player 2 as a bot - ie play against the computer.
+ *                 example: false
+ *       required: false
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -42,16 +55,27 @@ function postGame(event, callback) {
   const jsonBody = utilities.parseJson(event.body);  //deals with nulls and JSON parse errors
   var isPlayer2Bot = false;
   if (('isPlayer2Bot' in jsonBody) && validator.isBoolean(jsonBody.isPlayer2Bot + '', { loose: false }) && ['true', '1'].includes(jsonBody.isPlayer2Bot + '')) {
+    //Check this request not made by bot2 - can't play bot2 against bot 2
+    if (isBot2) {
+      var error = new Error('Bot2 can not be player 1 and player 2'); error.status = 422;
+      return callback(null, utilities.errorResponse(event, error));      
+    }
     isPlayer2Bot = true;
   }
 
   const code = utilities.generateGameCode();
 
-  //Set status to 'ended' and winner to 0 for any game this player is in - either as player 1 or player 2
-  models.Game.update(
-    { status: 'ended', winner: 0 },
-    { where: { [Op.and]: [ { status: { [Op.in]: ['waitingForPlayers', 'active']} }, { [Op.or]: [ { Player1Id: principalId }, { Player2Id: principalId } ] } ] } }
-  )
+  Promise.resolve()
+  .then(function() {
+    //If not bot1 creating this game, set status to 'ended' and winner to 0 for any game this player is in - either as player 1 or player 2
+    if (isBot1) {
+      return Promise.resolve();
+    }
+    return models.Game.update(
+      { status: 'ended', winner: 0 },
+      { where: { [Op.and]: [ { status: { [Op.in]: ['waitingForPlayers', 'active']} }, { [Op.or]: [ { Player1Id: principalId }, { Player2Id: principalId } ] } ] } }
+    );
+  })
   .then(function() {
 
     //create pack and shuffle cards
@@ -61,7 +85,7 @@ function postGame(event, callback) {
     var cardsP2 = [];
 
     //Deal out first 6 cards to the players
-    for (var i = 0; i < 12; i++) {
+    for (var i = 0; i < CARDS_PER_PLAYER * 2; i++) {
       if (i % 2 == 0) {
         cardsP1.push(shuffled[i]);
       }
@@ -77,9 +101,10 @@ function postGame(event, callback) {
       cardsP1: cardsP1.join(','),
       cardsP2: cardsP2.join(','),
       cards: shuffled.join(','),
-      cardPos: 12,
+      cardPos: CARDS_PER_PLAYER * 2,
       nextPlayer: 1,
       boardState: generateEmptyBoardState().join(','),
+      isPlayer1Bot: isBot1,
       isPlayer2Bot: isPlayer2Bot,
       Player1Id: principalId
     };
@@ -91,7 +116,7 @@ function postGame(event, callback) {
       return Promise.resolve();
     }
     //Create an SQS entry to signal the bot to join this game
-    return utilities.createSQSEntryForBot(code);
+    return utilities.createSQSEntryForBot(code, utilities.BOT2_DEVICE_UUID);
   })
   .then(function() {  
     return callback(null, utilities.okResponse(event, { code: code }));
@@ -109,11 +134,14 @@ function postGame(event, callback) {
 //************************************
 function createPack() {
   var cards = [];
-  ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'].forEach((card) => {
-    ['C', 'D', 'H', 'S'].forEach((suit) => {
-      cards.push(card + '|' + suit);
+  //2 packs used in Sequence
+  for (var i = 0; i < 2; i++) {
+    ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'].forEach((card) => {
+      ['C', 'D', 'H', 'S'].forEach((suit) => {
+        cards.push(card + '|' + suit);
+      });
     });
-  });
+  }
   return cards;
 }
 
@@ -135,6 +163,8 @@ exports.handler = (event, context, callback) => {
     return callback(null, utilities.errorResponse(event, err));
   }
   principalId = parseInt(event.requestContext.authorizer.principalId);
+  isBot1 = event.requestContext.authorizer.isBot1 == 'true';
+  isBot2 = event.requestContext.authorizer.isBot2 == 'true';
   const method = event.httpMethod || 'undefined';       //like GET
   const pathParameters = (event.pathParameters == null || !event.pathParameters.proxy) ? [] : event.pathParameters.proxy.split('/');
   //** BOILERPLATE END **//

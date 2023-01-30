@@ -1,7 +1,7 @@
 const axios = require('axios');
 const utilities = require(__dirname + '/utilities.js');
+var validator = require('validator');
 
-const BOT_DEVICE_UUID = '00000000-9ff1-4b77-8fdf-e626e8f98e94';
 const GAMES_END_POINT = 'https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games';
 
 //************************************
@@ -146,11 +146,9 @@ exports.handler = (event, context, callback) => {
   event.Records.forEach(function(record) {
     if ('body' in record) {
       const json = utilities.parseJson(record.body);
-      if (!('deviceUUID' in json)) {
-        json['deviceUUID'] = BOT_DEVICE_UUID;
-      }
-      if (('code' in json) && utilities.isValidGameCode(json.code)) {
-        promises.push(playRound(json.deviceUUID, json.code));
+      console.log(json);
+      if (('deviceUUID' in json) && validator.isUUID(json.deviceUUID) && ('code' in json) && utilities.isValidGameCode(json.code.toUpperCase())) {
+        promises.push(playRound(json.deviceUUID, json.code.toUpperCase()));
       }
     }
   });

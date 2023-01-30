@@ -73,6 +73,17 @@
           "type": "string"
         }
       },
+      "BoardPosition": {
+        "type": "array",
+        "description": "An x, y cooridnate on the board",
+        "example": [
+          0,
+          1
+        ],
+        "items": {
+          "type": "int32"
+        }
+      },
       "GameState": {
         "type": "object",
         "description": "Game state information. Always returns 'status' and 'players'. Other properties depend on game status - <ul><li><b>status = 'waitingForPlayers'</b> returns 'status', 'players'</li><li><b>status = 'active'</b> returns 'status', 'players', 'nextPlayer', 'boardState', 'cards'</li><li><b>status = 'ended'</b> returns 'status', 'players', 'winner', 'boardState'</li></ul>",
@@ -126,6 +137,13 @@
             "type": "int32",
             "description": "The number of the player who won. 1 = Player 1, 2 = Player 2. Note that 0 indicates that no player won - ie game was cancelled before a Player won the game.",
             "example": 2
+          },
+          "winningSequence": {
+            "type": "array",
+            "description": "The array of board positions that represent the winning sequence.",
+            "items": {
+              "$ref": "#/components/schemas/BoardPosition"
+            }
           }
         }
       },
@@ -159,6 +177,23 @@
         ],
         "summary": "Create a new game. This request returns the newly created game code like 'XY89'. This code is passed to the other player allowing them to join the game by POSTing to the /games/{code}/players endpoint.",
         "operationId": "Create a game",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "isPlayer2Bot": {
+                    "type": "boolean",
+                    "description": "A flag indicating the game should be created with player 2 as a bot - ie play against the computer.",
+                    "example": false
+                  }
+                }
+              }
+            }
+          },
+          "required": false
+        },
         "security": [
           {
             "bearerAuth": []

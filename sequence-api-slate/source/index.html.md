@@ -48,14 +48,18 @@ The /games endpoint is the main endpoint used for creating a new game, joining a
 ```shell
 # You can also use wget
 curl -X POST https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games \
+  -H 'Content-Type: application/json' \
   -H 'Accept: application/json' \
   -H 'Authorization: Bearer {access-token}'
 
 ```
 
 ```javascript
-
+const inputBody = '{
+  "isPlayer2Bot": false
+}';
 const headers = {
+  'Content-Type':'application/json',
   'Accept':'application/json',
   'Authorization':'Bearer {access-token}'
 };
@@ -63,7 +67,7 @@ const headers = {
 fetch('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games',
 {
   method: 'POST',
-
+  body: inputBody,
   headers: headers
 })
 .then(function(res) {
@@ -80,6 +84,7 @@ fetch('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games',
 require 'vendor/autoload.php';
 
 $headers = array(
+    'Content-Type' => 'application/json',
     'Accept' => 'application/json',
     'Authorization' => 'Bearer {access-token}',
 );
@@ -109,6 +114,7 @@ try {
 ```python
 import requests
 headers = {
+  'Content-Type': 'application/json',
   'Accept': 'application/json',
   'Authorization': 'Bearer {access-token}'
 }
@@ -124,6 +130,7 @@ require 'rest-client'
 require 'json'
 
 headers = {
+  'Content-Type' => 'application/json',
   'Accept' => 'application/json',
   'Authorization' => 'Bearer {access-token}'
 }
@@ -147,6 +154,7 @@ import (
 func main() {
 
     headers := map[string][]string{
+        "Content-Type": []string{"application/json"},
         "Accept": []string{"application/json"},
         "Authorization": []string{"Bearer {access-token}"},
     }
@@ -182,6 +190,20 @@ System.out.println(response.toString());
 `POST /games`
 
 *Create a new game. This request returns the newly created game code like 'XY89'. This code is passed to the other player allowing them to join the game by POSTing to the /games/{code}/players endpoint.*
+
+> Body parameter
+
+```json
+{
+  "isPlayer2Bot": false
+}
+```
+
+<h3 id="create-a-game-parameters">Parameters</h3>
+
+|Name|In|Type|Required|Description|
+|---|---|---|---|---|
+|isPlayer2Bot|body|boolean|false|A flag indicating the game should be created with player 2 as a bot - ie play against the computer.|
 
 > Example responses
 
@@ -737,7 +759,13 @@ System.out.println(response.toString());
       ""
     ]
   ],
-  "winner": 2
+  "winner": 2,
+  "winningSequence": [
+    [
+      0,
+      1
+    ]
+  ]
 }
 ```
 
@@ -1512,6 +1540,27 @@ The state of one row on the board as a 10 element array of strings. The string i
 
 *None*
 
+<h2 id="tocS_BoardPosition">BoardPosition</h2>
+<!-- backwards compatibility -->
+<a id="schemaboardposition"></a>
+<a id="schema_BoardPosition"></a>
+<a id="tocSboardposition"></a>
+<a id="tocsboardposition"></a>
+
+```json
+[
+  0,
+  1
+]
+
+```
+
+An x, y cooridnate on the board
+
+### Properties
+
+*None*
+
 <h2 id="tocS_GameState">GameState</h2>
 <!-- backwards compatibility -->
 <a id="schemagamestate"></a>
@@ -1549,7 +1598,13 @@ The state of one row on the board as a 10 element array of strings. The string i
       ""
     ]
   ],
-  "winner": 2
+  "winner": 2,
+  "winningSequence": [
+    [
+      0,
+      1
+    ]
+  ]
 }
 
 ```
@@ -1566,6 +1621,7 @@ Game state information. Always returns 'status' and 'players'. Other properties 
 |nextPlayer|int32|false|none|The number of the next player. 1 = Player 1, 2 = Player 2.|
 |boardState|[[BoardRow](#schemaboardrow)]|false|none|The current state of the game board - same for each player - sent as a 10 row array of BoardRow objects.|
 |winner|int32|false|none|The number of the player who won. 1 = Player 1, 2 = Player 2. Note that 0 indicates that no player won - ie game was cancelled before a Player won the game.|
+|winningSequence|[[BoardPosition](#schemaboardposition)]|false|none|The array of board positions that represent the winning sequence.|
 
 #### Enumerated Values
 

@@ -59,11 +59,11 @@ function postBot(event, callback) {
 
   //Check params are valid
   //Code
-  if (!utilities.isValidGameCode(jsonBody['code'])) {
+  if (!utilities.isValidGameCode(jsonBody['code'].toUpperCase())) {
     var error = new Error('Code "' + jsonBody['code'] + '" is not a valid game code'); error.status = 422;
     return callback(null, utilities.errorResponse(event, error));          
   }
-  const code = jsonBody['code'];
+  const code = jsonBody['code'].toUpperCase();
 
   //Check game state - must be 'active' and this player part of games else error
   models.Game.findOne({
