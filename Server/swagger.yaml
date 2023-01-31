@@ -170,6 +170,29 @@ components:
           type: string
           description: The player's color
           example: ff0000
+    WinningSequence:
+      type: object
+      description: A game winning sequence
+      properties:
+        type:
+          type: string
+          enum:
+            - row
+            - col
+            - diagDR
+            - diagDL
+          description: >-
+            The type of winning sequence. One of 'row', 'col', 'diagDR' and
+            'diagDL' for row, column, diagonal down and to the right and
+            diagonal down and to the left.
+          example: row
+        sequence:
+          type: array
+          description: >-
+            The winning sequence as a length 5 array of points on the game
+            board.
+          items:
+            $ref: '#/components/schemas/BoardPosition'
 paths:
   /games:
     post:
@@ -209,6 +232,28 @@ paths:
                       4 character alphanumeric game code - used to uniquely
                       identify this game
                     example: AB12
+        '401':
+          description: unauthorised - invalid Authorisation Bearer token
+    get:
+      tags:
+        - Games
+      summary: >-
+        Get a list of games. This request returns all the completed game winning
+        sequences as an array. This is primarily used for development and
+        testing to ensure that all different possible winning sequences are
+        tested and result in a win being declared.
+      operationId: Get a list of games
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WinningSequence'
         '401':
           description: unauthorised - invalid Authorisation Bearer token
   '/games/{code}/players':

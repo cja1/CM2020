@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Sequence Online Demo Page</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="Sequence Online Demo Page">
+  <meta name="author" content="Team 61">
+</head>
+
+<body>
+
+
+</body>
+
+<!-- JQuery -->
+<script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+
+<script src="lib/p5.min.js"></script>
+<script src="lib/quicksettings.js"></script>
+<script src="lib/p5.gui.js"></script>
+<script src="lib/p5.dom.js"></script>
+
+<script>
+
+const API_ENDPOINT = 'https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod';
+var games = [{"type":"row","sequence":[[1,4],[1,5],[1,6],[1,7],[1,8]]}, {"type":"diagDR","sequence":[[3,4],[4,5],[5,6],[6,7],[7,8]]}];
+
+//Generate a UUID: https://stackoverflow.com/questions/105034/how-do-i-create-a-guid-uuid
+function uuidv4() {
+  return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+    (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+  );
+}
+
+function getDeviceUUID() {
+  //Get this device's UUID from localStorage if set. If not, create.
+  if (localStorage.getItem('deviceUUID') !== null) {
+    return localStorage.getItem('deviceUUID');
+  }
+  //Create and save
+  const deviceUUID = uuidv4();
+  localStorage.setItem('deviceUUID', deviceUUID);
+  return deviceUUID;
+}
+
+function getGames() {
+  $.ajax({
+    type: 'GET',
+    url: API_ENDPOINT + '/games',
+    beforeSend: function (xhr) {
+      xhr.setRequestHeader('Authorization', 'Bearer ' + getDeviceUUID());
+    },
+    success: function(result) {
+      games = result;
+    },
+    error: function(err) {
+      console.log(err);
+    }
+  });
+}
+
+getGames();
+
+//////////////////////////////////////////////////////////////////////////////
+//P5 code to draw game board
+//////////////////////////////////////////////////////////////////////////////
+
+
+var font;
+
+function setup() {
+   createCanvas(windowWidth, windowHeight);
+   background(255);
+   font = loadFont('fonts/SpecialElite-Regular.ttf')
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
+
+function draw() {
+   background(255);
+  //Game board
+  const titles = ['Row', 'Column', 'Diagonal Down', 'Diagonal Up'];
+  const types = ['row', 'col', 'diagDR', 'diagUR'];
+  for (var i = 0; i < 4; i++) {
+    push();
+    translate(windowWidth / 4 * i, 0);
+    drawGameBoard(titles[i], types[i], windowWidth / 4, 500);
+    pop();
+  }
+}
+
+function drawGameBoard(title, type, boardW, boardH) {
+  const padding = 30;
+  const gap = 5.0;
+  const rounded = 5.0;
+
+  const w = (boardW - 2 * padding - 9 * gap) / 10;
+  const h = (boardH - 2 * padding - 9 * gap) / 10;
+  var count = 0;
+  for (var row = 0; row < 10; row++) {
+    for (var col = 0; col < 10; col++) {
+      const x = padding + (w + gap) * col;
+      const y = padding + (h + gap) * row;
+      stroke(150,150,150);
+      noFill();
+      rect(x, y, w, h, rounded);
+
+      //add game outcomes
+      //HERE
+      games.forEach((game) => {
+        if (game.type == type && game.sequence[0][0] == row && game.sequence[0][1] == col) {
+          //add dots and line
+          var dotX, dotY;
+          for (var i = 1; i < 5; i++) {
+            const coord = game.sequence[i];
+            fill(150);
+            stroke(150);
+            dotX = padding + (w + gap) * coord[1];
+            dotY = padding + (h + gap) * coord[0];
+            ellipse(dotX + w / 2, dotY + h / 2, w * 0.2);
+          }
+          line(x + w / 2, y + h / 2, dotX + w / 2, dotY + h / 2)
+          //Add start dot - at end so overwrites start of line
+          fill(255,0,0);
+          stroke(255,0,0);
+          ellipse(x + w / 2, y + h / 2, w * 0.4);
+          //inc count
+          count += 1;
+        }
+      });
+    }
+  }
+  //Add title with count for this type
+  fill(0);
+  textFont(font, 18);
+  textAlign(CENTER);
+  text(title + ': ' + count, 0, 5, boardW, 30);
+
+}
+
+</script>
+
+</html>

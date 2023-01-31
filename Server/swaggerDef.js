@@ -31,5 +31,6 @@ module.exports = {
     '/Users/callen/Documents/Personal/CompSci/CM2020 ASP/CM2020/Server/lambda/usersGet.js',
     '/Users/callen/Documents/Personal/CompSci/CM2020 ASP/CM2020/Server/lambda/usersPatch.js',
     '/Users/callen/Documents/Personal/CompSci/CM2020 ASP/CM2020/Server/lambda/botsPost.js',
+    '/Users/callen/Documents/Personal/CompSci/CM2020 ASP/CM2020/Server/lambda/gamesGet.js',
   ]
 };

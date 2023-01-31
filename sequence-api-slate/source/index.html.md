@@ -235,6 +235,199 @@ To perform this operation, you must be authenticated by means of one of the foll
 bearerAuth
 </aside>
 
+## Get a list of games
+
+<a id="opIdGet a list of games"></a>
+
+> Code samples
+
+```shell
+# You can also use wget
+curl -X GET https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games \
+  -H 'Accept: application/json' \
+  -H 'Authorization: Bearer {access-token}'
+
+```
+
+```javascript
+
+const headers = {
+  'Accept':'application/json',
+  'Authorization':'Bearer {access-token}'
+};
+
+fetch('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games',
+{
+  method: 'GET',
+
+  headers: headers
+})
+.then(function(res) {
+    return res.json();
+}).then(function(body) {
+    console.log(body);
+});
+
+```
+
+```php
+<?php
+
+require 'vendor/autoload.php';
+
+$headers = array(
+    'Accept' => 'application/json',
+    'Authorization' => 'Bearer {access-token}',
+);
+
+$client = new \GuzzleHttp\Client();
+
+// Define array of request body.
+$request_body = array();
+
+try {
+    $response = $client->request('GET','https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games', array(
+        'headers' => $headers,
+        'json' => $request_body,
+       )
+    );
+    print_r($response->getBody()->getContents());
+ }
+ catch (\GuzzleHttp\Exception\BadResponseException $e) {
+    // handle exception or api errors.
+    print_r($e->getMessage());
+ }
+
+ // ...
+
+```
+
+```python
+import requests
+headers = {
+  'Accept': 'application/json',
+  'Authorization': 'Bearer {access-token}'
+}
+
+r = requests.get('https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games', headers = headers)
+
+print(r.json())
+
+```
+
+```ruby
+require 'rest-client'
+require 'json'
+
+headers = {
+  'Accept' => 'application/json',
+  'Authorization' => 'Bearer {access-token}'
+}
+
+result = RestClient.get 'https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games',
+  params: {
+  }, headers: headers
+
+p JSON.parse(result)
+
+```
+
+```go
+package main
+
+import (
+       "bytes"
+       "net/http"
+)
+
+func main() {
+
+    headers := map[string][]string{
+        "Accept": []string{"application/json"},
+        "Authorization": []string{"Bearer {access-token}"},
+    }
+
+    data := bytes.NewBuffer([]byte{jsonReq})
+    req, err := http.NewRequest("GET", "https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games", data)
+    req.Header = headers
+
+    client := &http.Client{}
+    resp, err := client.Do(req)
+    // ...
+}
+
+```
+
+```java
+URL obj = new URL("https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games");
+HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+con.setRequestMethod("GET");
+int responseCode = con.getResponseCode();
+BufferedReader in = new BufferedReader(
+    new InputStreamReader(con.getInputStream()));
+String inputLine;
+StringBuffer response = new StringBuffer();
+while ((inputLine = in.readLine()) != null) {
+    response.append(inputLine);
+}
+in.close();
+System.out.println(response.toString());
+
+```
+
+`GET /games`
+
+*Get a list of games. This request returns all the completed game winning sequences as an array. This is primarily used for development and testing to ensure that all different possible winning sequences are tested and result in a win being declared.*
+
+> Example responses
+
+> 200 Response
+
+```json
+[
+  {
+    "type": "row",
+    "sequence": [
+      [
+        0,
+        1
+      ]
+    ]
+  }
+]
+```
+
+<h3 id="get-a-list-of-games-responses">Responses</h3>
+
+|Status|Meaning|Description|Schema|
+|---|---|---|---|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|successful operation|Inline|
+|401|[Unauthorized](https://tools.ietf.org/html/rfc7235#section-3.1)|unauthorised - invalid Authorisation Bearer token|None|
+
+<h3 id="get-a-list-of-games-responseschema">Response Schema</h3>
+
+Status Code **200**
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|*anonymous*|[[WinningSequence](#schemawinningsequence)]|false|none|[A game winning sequence]|
+|» type|string|false|none|The type of winning sequence. One of 'row', 'col', 'diagDR' and 'diagDL' for row, column, diagonal down and to the right and diagonal down and to the left.|
+|» sequence|[[BoardPosition](#schemaboardposition)]|false|none|The winning sequence as a length 5 array of points on the game board.|
+
+#### Enumerated Values
+
+|Property|Value|
+|---|---|
+|type|row|
+|type|col|
+|type|diagDR|
+|type|diagDL|
+
+<aside class="warning">
+To perform this operation, you must be authenticated by means of one of the following methods:
+bearerAuth
+</aside>
+
 ## Join a game
 
 <a id="opIdJoin a game"></a>
@@ -1654,4 +1847,42 @@ User information
 |---|---|---|---|---|
 |name|string|true|none|The player's name|
 |color|string|true|none|The player's color|
+
+<h2 id="tocS_WinningSequence">WinningSequence</h2>
+<!-- backwards compatibility -->
+<a id="schemawinningsequence"></a>
+<a id="schema_WinningSequence"></a>
+<a id="tocSwinningsequence"></a>
+<a id="tocswinningsequence"></a>
+
+```json
+{
+  "type": "row",
+  "sequence": [
+    [
+      0,
+      1
+    ]
+  ]
+}
+
+```
+
+A game winning sequence
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|type|string|false|none|The type of winning sequence. One of 'row', 'col', 'diagDR' and 'diagDL' for row, column, diagonal down and to the right and diagonal down and to the left.|
+|sequence|[[BoardPosition](#schemaboardposition)]|false|none|The winning sequence as a length 5 array of points on the game board.|
+
+#### Enumerated Values
+
+|Property|Value|
+|---|---|
+|type|row|
+|type|col|
+|type|diagDR|
+|type|diagDL|
 
