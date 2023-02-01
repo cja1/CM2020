@@ -12,6 +12,8 @@
 
 **client-demo**: A basic web client that accesses the endpoints - used for testing.
 
+**client-web**: A P5-based web client as an MVP version of the game. Access it here: [https://compsci.s3.eu-west-1.amazonaws.com/CM2020/client-web/index.html](https://compsci.s3.eu-west-1.amazonaws.com/CM2020/client-web/index.html)
+
 Note: the API documentation is also available online in both [JSON](https://compsci.s3.eu-west-1.amazonaws.com/CM2020/swagger.json) and [YAML](https://compsci.s3.eu-west-1.amazonaws.com/CM2020/swagger.yaml) formats.
 
 

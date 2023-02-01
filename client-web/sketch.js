@@ -1,23 +1,52 @@
 
+//global for the game board
+var gameBoard = null;
+
+var gameState = {"players": [{"name": "Player08801","color": "d9efd8","isMe": true},{"name": "COMPUTER","color": "ff0000","isMe": false}]}
+
+var boardState = [];
+var font;
+var playArea = { x: 0, y: 0, width: 0, height: 0, boardTop: 0, boardHeight: 0 };
+var didChangeState = true;
+
 function preload() {
+  gameBoard = new GameBoard();
+  gameBoard.preload();
+  font = loadFont('fonts/SpecialElite-Regular.ttf')
 }
 
-function setup(){
-   createCanvas(windowWidth, windowHeight);
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  setupPlayArea();
+  gameBoard.setup();
 }
 
-function draw(){
-  background(0);
-  fill(255);
-  ellipse(width/2, height/2, 100, 100);
+function draw() {
+  if (didChangeState) {
+    gameBoard.draw();
+    didChangeState = false;
+  }
 }
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  setupPlayArea();
+  gameBoard.setup();
+  didChangeState = true;
+}
+
+function setupPlayArea() {
+  playArea.height = windowHeight * 0.9;
+  playArea.width = Math.min(playArea.height * 0.6, windowWidth);
+  playArea.x = (windowWidth - playArea.width) / 2.0;
+  playArea.y = (windowHeight - playArea.height) / 2.0;
+  playArea.boardTop = playArea.height * 0.1 + playArea.y;
+  playArea.boardHeight = playArea.height * 0.7;
+}
+
 
 //support mouse clicks inside visualisation if supported
 /*function mouseClicked(){
-  controls.mousePressed();
-  if (vis.selectedVisual && vis.selectedVisual.hasOwnProperty('mousePressed')){
-    vis.selectedVisual.mousePressed();
-  }
 }*/
 
 //use touch started rather than mouse click - seems to be more reliable on touch devices
@@ -25,12 +54,7 @@ function touchStarted() {
 //  controls.mousePressed();
 }
 
-function keyPressed(){
+function keyPressed() {
   //controls.keyPressed(keyCode);
 }
 
-//when the window has been resized. Resize canvas to fit 
-//if the visualisation needs to be resized call its onResize method
-function windowResized(){
-  resizeCanvas(windowWidth, windowHeight);
-}

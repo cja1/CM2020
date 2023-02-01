@@ -263,7 +263,7 @@ function drawGameBoard() {
   const boardGame = boardGameWithCards();
 
   var p1Color, p2Color;
-  if ('boardState' in gameState) {
+  if ('players' in gameState) {
     p1Color = color('#' + gameState.players[0].color);
     p2Color = color('#' + gameState.players[1].color);
   }

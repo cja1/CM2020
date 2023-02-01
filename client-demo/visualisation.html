@@ -24,7 +24,7 @@
 <script>
 
 const API_ENDPOINT = 'https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod';
-var games = [{"type":"row","sequence":[[1,4],[1,5],[1,6],[1,7],[1,8]]}, {"type":"diagDR","sequence":[[3,4],[4,5],[5,6],[6,7],[7,8]]}];
+var games = [];
 
 //Generate a UUID: https://stackoverflow.com/questions/105034/how-do-i-create-a-guid-uuid
 function uuidv4() {
@@ -109,7 +109,6 @@ function drawGameBoard(title, type, boardW, boardH) {
       rect(x, y, w, h, rounded);
 
       //add game outcomes
-      //HERE
       games.forEach((game) => {
         if (game.type == type && game.sequence[0][0] == row && game.sequence[0][1] == col) {
           //add dots and line
