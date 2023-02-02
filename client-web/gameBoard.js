@@ -2,8 +2,14 @@
 function GameBoard() {
   
   //local vars
+  //player colours
   var colPlayer1, colPlayer2;
+  //static card images (heart, spade, club, diamond)
   var images = {};
+  //lookups for board card position and player cards - to support hit check on click events
+  var boardCardFrames = {};
+  var playerCardFrames = {};
+  var selectedCard = null;
 
   this.preload = function() {
     images['C'] = loadImage('images/club.png');
@@ -17,11 +23,78 @@ function GameBoard() {
   }
 
   this.draw = function() {
+    boardCardFrames = {};
+    playerCardFrames = {};
+
     setupPlayerColors();
+
     drawGameBoard();
     drawPlayersCards(['3|H', '4|D', '10|H', '8|D', 'Q|D', 'A|D', '2|S']);
     drawText('Waiting for players');
   }
+
+  //Check for clicks on cards - game board or player cards
+  //If we have a click on a player card FOLLOWED BY a click on the relevant board cell AND validMove,return the card played.
+  //If we are changing state (so need a refresh) return true.
+  //Else return false.
+  this.hitCheck = function() {
+    var frame;
+
+    //Start by seeing if selecting a card in player's hand
+    const cards = Object.keys(playerCardFrames);
+    for (var i = 0; i < cards.length; i++) {
+      frame = playerCardFrames[cards[i]];
+
+      if (mouseX > frame.x && mouseX < frame.x + frame.w && mouseY > frame.y && mouseY < frame.y + frame.h) {
+        //clicking on a player card... options
+        //#1 If no selected card, select this card
+        if (selectedCard == null) {
+          console.log('selecting card ' + cards[i]);
+          selectedCard = cards[i];
+          return true;
+        }
+        //#2 If the selected one, de-select
+        if (selectedCard == cards[i]) {
+          console.log('de-selecting card ' + selectedCard);
+          selectedCard = null;
+          return true;
+        }
+        //#3 Change the selected card to this one
+        selectedCard = cards[i];
+        console.log('selecting card ' + cards[i]);
+        return true;
+      }
+    }
+
+    //This wasn't a click on a player card but a click elsewhere. If no card currently selected, ignore the click
+    if (selectedCard == null) {
+      console.log('ignoring');
+      return false;
+    }
+
+    //See if we have a click on one of the the relevant 2 board cards
+    const frames = boardCardFrames[selectedCard];
+    //Frames always contains exactly 2 frames for the 2 cards on the board
+    for (var i = 0; i < frames.length; i++) {
+      frame = frames[i];
+      if (mouseX > frame.x && mouseX < frame.x + frame.w && mouseY > frame.y && mouseY < frame.y + frame.h) {
+        //This is a click on the card - check a valid move for this card
+        if (gameLogic.isValidMove(selectedCard, frame.row, frame.col)) {
+          console.log('playing card ' + selectedCard);
+          return selectedCard;
+        }
+        else {
+          //ignore click
+          return false;
+        }
+      }
+    }
+
+    //We clicked somewhere else - deselect and return false
+    console.log('de-selecting card ' + selectedCard);
+    selectedCard = null;
+    return true;
+  };
 
   ////////////////////////////////////////
   // Private functions
@@ -43,7 +116,7 @@ function GameBoard() {
     const cellWidth = (playArea.width - 11 * gap) / 10;
     const cellHeight = (playArea.boardHeight - 11 * gap) / 10;
 
-    textAlign(LEFT);
+    textAlign(LEFT, CENTER);
     //Dynamic font size
     const fontSize = Math.floor(cellWidth * 0.55);
     textFont(font, fontSize);
@@ -64,21 +137,37 @@ function GameBoard() {
     for (var row = 0; row < 10; row++) {
       for (var col = 0; col < 10; col++) {
         push();
-        translate(playArea.x + (cellWidth + gap) * col + gap, playArea.boardTop + (cellHeight + gap) * row + gap);
+        const x = playArea.x + (cellWidth + gap) * col + gap;
+        const y = playArea.boardTop + (cellHeight + gap) * row + gap;
+        translate(x, y);
 
-        //HERE. Pass in boardState and use to pick colour or null
-
+        //Check board state and set the colour to the player if player owns this cell
         var colPlayer = null;
-        drawGameCell(cellWidth, cellHeight, board[row][col], colPlayer);
+        if (('boardState' in gameState) && (gameState.boardState[row][col] != '')) {
+          colPlayer = (gameState.boardState[row][col] == 'p1') ? colPlayer1 : colPlayer2;
+        }
+
+        const card = board[row][col];
+        const isHighlighted = selectedCard == card;  //selected card equals the card we are displaying
+        drawGameCell(cellWidth, cellHeight, card, colPlayer, isHighlighted);
         pop();
+
+        //add to boardCardFrames - ignore if corners as can't click on corners
+        if (card != '') {
+          //We want to make an array with the 2 card frames that are on the board for this card
+          if (!(card in boardCardFrames)) {
+            boardCardFrames[card] = [];
+          }
+          boardCardFrames[card].push({ x: x, y: y, w: cellWidth, h: cellHeight, row: row, col: col });
+        }
       }
     }
   }
 
-  function drawGameCell(w, h, card, colPlayer) {
+  function drawGameCell(w, h, card, colPlayer, isHighlighted) {
     //Draw playing card background
     const rounded = 5.0;
-    fill(255);
+    fill(isHighlighted ? 'yellow' : 255);
     rect(0, 0, w, h, rounded);
 
     //draw card
@@ -92,13 +181,13 @@ function GameBoard() {
 
       //Add text
       fill(0);
-      text(cardParts[0], w * 0.15, h * 0.45);
+      text(cardParts[0], w * 0.15, h * 0.28);
 
       //add image
       const img = images[cardParts[1]];
       const imgW = w / 2.2;
       const imgH = imgW / img.width * img.height;
-      image(img, w / 2, h / 2, imgW, imgH);
+      image(img, w / 2, h / 2 * 1.1, imgW, imgH);
     }
 
     //add player piece if player colour set
@@ -140,26 +229,63 @@ function GameBoard() {
   }
 
   function drawPlayersCards(cards) {
-    const gap = 10.0;
-    const padding = 20.0;
-    const playersCardsHeight = (playArea.height - playArea.boardHeight) * 0.7;
+    //Calculate dimensions
+    const cardHeight = playArea.playerCardsHeight * 0.5;
+    const cardWidth = cardHeight * 2 / 3; //width is 2/3 height - looks 'right'
 
-    //Bad logic.... should be fixed height then calc width from height, then figure out card start x (with fixed gap?)
-    const cellWidth = (playArea.width - padding * 2 - (cards.length - 1) * gap) / cards.length;
-    const cellHeight = cellWidth / playArea.width * playArea.height;
+    //Distribute cards with start / end padding
+    const padding = playArea.width * 0.05; //5% of width as left / right padding
 
-    textAlign(LEFT);
+    //Force gap to always be based on 7 cards - so effectively left-aligns cards
+    const numCardsForGap = 7;
+    const gapX = (playArea.width - padding * 2 - numCardsForGap * cardWidth) / (numCardsForGap - 1);
+    const gapY = (playArea.playerCardsHeight - cardHeight) / 2.0;
+
+    textAlign(LEFT, CENTER);
     //Dynamic font size
-    const fontSize = Math.floor(cellWidth * 0.55);
+    const fontSize = Math.floor(cardWidth * 0.55);
     textFont(font, fontSize);
 
+    //Add cards
+    for (var i = 0; i < cards.length; i++) {
+      push();
+      const x = playArea.x + padding + (cardWidth + gapX) * i;
+      const y = playArea.playerCardsTop + gapY;
+      translate(x, y);
+      const isHighlighted = selectedCard == cards[i];  //selected card equals the card we are displaying
+      drawPlayerCard(cards[i], cardWidth, cardHeight, isHighlighted);
+      pop();
+
+      playerCardFrames[cards[i]] = { x: x, y: y, w: cardWidth, h: cardHeight };
+    }
   }
 
-  function drawText(text) {
+  function drawPlayerCard(card, w, h, isHighlighted) {
+    //Background
+    const rounded = 5.0;
+    fill(isHighlighted ? 'yellow' : 255);
+    rect(0, 0, w, h, rounded);
+
+    const cardParts = card.split('|');
+
+    //Add text
+    fill(0);
+    text(cardParts[0], w * 0.15, h * 0.25);
+
+    //add image
+    //HERE: remove background from images. Make fixed size / heart in the middle of a (200 x 200?) box
+    const img = images[cardParts[1]];
+    const imgW = w / 2.1;
+    const imgH = imgW / img.width * img.height;
+    image(img, w / 2 / 1.1, h / 2 * 1.25, imgW, imgH);      
+  }
+
+  function drawText(str) {
     fill(255);
     textAlign(CENTER, CENTER);
-    textFont(font, 30);
-    text(text, playArea.x, playArea.y, playArea.width, playArea.boardTop - playArea.y);
+    const fontSize = Math.floor(playArea.width * 0.09);
+    textFont(font, fontSize);
+    text(str, playArea.x, playArea.y, playArea.width, playArea.boardTop - playArea.y);
   }
 
   function setupPlayerColors() {
@@ -168,6 +294,5 @@ function GameBoard() {
       colPlayer2 = color('#' + gameState.players[1].color);
     }
   }
-
 
 }
