@@ -10,26 +10,30 @@ var principalId;
  *
  * components:
  *   schemas:
- *     WinningSequence:
+ *     GameOutcome:
  *       type: object
- *       description: A game winning sequence
+ *       description: The data set for the outcome of a game
+ *       required: [handsPlayed, winner]
  *       properties:
- *         type:
- *           type: string
- *           enum: [row, col, diagDR, diagDL]
- *           description: The type of winning sequence. One of 'row', 'col', 'diagDR' and 'diagDL' for row, column, diagonal down and to the right and diagonal down and to the left.
- *           example: row
- *         sequence:
- *           type: array
- *           description: The winning sequence as a length 5 array of points on the game board.
- *           items:
- *             $ref: '#/components/schemas/BoardPosition' 
+ *         handsPlayed:
+ *           type: int32
+ *           description: The number of hands played in this game. Maximum is 104 as a maximum of 52 x 2 cards played.
+ *           example: 65
+ *         winner:
+ *           type: int32
+ *           enum: [0, 1, 2]
+ *           description: The winner of the game. Either 0 represening no winner (a draw), 1 representing Player 1 or 2 represening Player 2
+ *           example: 1
+ *         winningSequence:
+ *           type: object
+ *           description: The winning sequence object, containing the type of win and a length 5 array of winning points on the game board.
+ *           $ref: '#/components/schemas/WinningSequence' 
  * 
  * /games:
  *   get:
  *     tags:
  *     - Games
- *     summary: Get a list of games. This request returns all the completed game winning sequences as an array. This is primarily used for development and testing to ensure that all different possible winning sequences are tested and result in a win being declared.
+ *     summary: Get a list of ended games. This request returns data about the last 100 completed games. For each game the return data is the number of hands played, the winner and the winning sequence. This endpoint is primarily used for statistics and development to ensure that all different possible winning sequences are tested and result in a win being declared.
  *     operationId: Get a list of games
  *     security:
  *       - bearerAuth: []
@@ -40,8 +44,9 @@ var principalId;
  *           application/json:
  *             schema:
  *               type: array
+ *               description: Array of GameOutcome objects
  *               items:
- *                 $ref: '#/components/schemas/WinningSequence' 
+ *                 $ref: '#/components/schemas/GameOutcome' 
  *       401:
  *         description: unauthorised - invalid Authorisation Bearer token
  */
@@ -52,18 +57,21 @@ var principalId;
 function getGames(event, callback) {
 
   models.Game.findAll({
-    attributes: ['winningSequence'],
-    where: { [Op.and]: [
-      { winningSequence: { [Op.ne]: null } },
-      { status: 'ended' }
-    ]}
+    attributes: ['handsPlayed', 'winner', 'winningSequence'],
+    where: { status: 'ended' },
+    limit: 100,
+    order: [['updatedAt', 'DESC']]
   })
   .then(function(games) {
-    var winningSequences = [];
+    var outcomes = [];
     games.forEach((game) => {
-      winningSequences.push(JSON.parse(game.winningSequence));
+      var obj = { handsPlayed: game.handsPlayed, winner: game.winner };
+      if (game.winningSequence != null) {
+        obj['winningSequence'] = JSON.parse(game.winningSequence);
+      }
+      outcomes.push(obj);
     });
-    return callback(null, utilities.okResponse(event, winningSequences));
+    return callback(null, utilities.okResponse(event, outcomes));
   }, function(err) {
     console.log(err);
     return callback(null, utilities.errorResponse(event, err));

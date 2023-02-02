@@ -68,6 +68,10 @@ getGames();
 
 
 var font;
+var count = 0;
+var haveDrawnBackground = false;
+const counts = { 'row': 0, 'col': 0, 'diagDR': 0, 'diagUR': 0 };
+const handsPlayedDistrib = { 0: 0, 10: 0, 20: 0, 30: 0, 40: 0, 50: 0, 60: 0, 70: 0, 80: 0, 90: 0, 100: 0 };
 
 function setup() {
    createCanvas(windowWidth, windowHeight);
@@ -80,26 +84,64 @@ function windowResized() {
 }
 
 function draw() {
-   background(255);
   //Game board
-  const titles = ['Row', 'Column', 'Diagonal Down', 'Diagonal Up'];
-  const types = ['row', 'col', 'diagDR', 'diagUR'];
-  for (var i = 0; i < 4; i++) {
-    push();
-    translate(windowWidth / 4 * i, 0);
-    drawGameBoard(titles[i], types[i], windowWidth / 4, 500);
-    pop();
+  if (!haveDrawnBackground) {
+    background(255);
+    const titles = ['Row', 'Column', 'Diagonal Down', 'Diagonal Up'];
+    for (var i = 0; i < 4; i++) {
+      push();
+      translate(windowWidth / 4 * i, 0);
+      drawGameBoard(titles[i], windowWidth / 4, 500);
+      pop();
+    }
+    haveDrawnBackground = true;
   }
+
+  if (games.length == 0) { return; } //no data yet
+  if (frameCount == games.length) { //just plotted all points
+    //Show counts
+    for (var i = 0; i < 4; i++) {
+      push();
+      translate(windowWidth / 4 * i, 0);
+      const val = counts[Object.keys(counts)[i]];
+      showCount(val, windowWidth / 4, 500);
+      pop();
+    }
+    console.log(handsPlayedDistrib);
+
+    return;
+  } 
+  //Stop if no more games or a max of 5,000 games
+  if (frameCount > games.length || count == 5000) { return; }
+
+  const game = games[frameCount];
+
+  //Increment histogram data for hands played
+  const handsPlayed = game.handsPlayed;
+  const handsPlayedRounded = Math.floor(handsPlayed / 10.0) * 10; //round down to nearest 10;
+  handsPlayedDistrib[handsPlayedRounded] += 1;
+
+  if (!('winningSequence' in game)) { return; }
+  const type = game.winningSequence.type;
+
+  const lookup = { 'row': 0, 'col': 1, 'diagDR': 2, 'diagUR': 3 };
+  
+  push();
+  translate(windowWidth / 4 * lookup[type], 0);
+  drawGameOutcome(game.winningSequence.sequence, windowWidth / 4, 500);
+  pop();
+  
+  counts[type] += 1;
+  count += 1;
 }
 
-function drawGameBoard(title, type, boardW, boardH) {
+function drawGameBoard(title, boardW, boardH) {
   const padding = 30;
   const gap = 5.0;
   const rounded = 5.0;
 
   const w = (boardW - 2 * padding - 9 * gap) / 10;
   const h = (boardH - 2 * padding - 9 * gap) / 10;
-  var count = 0;
   for (var row = 0; row < 10; row++) {
     for (var col = 0; col < 10; col++) {
       const x = padding + (w + gap) * col;
@@ -107,38 +149,53 @@ function drawGameBoard(title, type, boardW, boardH) {
       stroke(150,150,150);
       noFill();
       rect(x, y, w, h, rounded);
-
-      //add game outcomes
-      games.forEach((game) => {
-        if (game.type == type && game.sequence[0][0] == row && game.sequence[0][1] == col) {
-          //add dots and line
-          var dotX, dotY;
-          for (var i = 1; i < 5; i++) {
-            const coord = game.sequence[i];
-            fill(150);
-            stroke(150);
-            dotX = padding + (w + gap) * coord[1];
-            dotY = padding + (h + gap) * coord[0];
-            ellipse(dotX + w / 2, dotY + h / 2, w * 0.2);
-          }
-          line(x + w / 2, y + h / 2, dotX + w / 2, dotY + h / 2)
-          //Add start dot - at end so overwrites start of line
-          fill(255,0,0);
-          stroke(255,0,0);
-          ellipse(x + w / 2, y + h / 2, w * 0.4);
-          //inc count
-          count += 1;
-        }
-      });
     }
   }
-  //Add title with count for this type
+  //Add title
   fill(0);
   textFont(font, 18);
   textAlign(CENTER);
-  text(title + ': ' + count, 0, 5, boardW, 30);
-
+  text(title, 0, 5, boardW, 30);
 }
+
+function drawGameOutcome(sequence, boardW, boardH) {
+  const padding = 30;
+  const gap = 5.0;
+  const w = (boardW - 2 * padding - 9 * gap) / 10;
+  const h = (boardH - 2 * padding - 9 * gap) / 10;
+  for (var row = 0; row < 10; row++) {
+    for (var col = 0; col < 10; col++) {
+      if (sequence[0][0] != row || sequence[0][1] != col) { continue; }
+      const x = padding + (w + gap) * col;
+      const y = padding + (h + gap) * row;
+      var dotX, dotY;
+
+      //add dots and line
+      for (var i = 1; i < 5; i++) {
+        const coord = sequence[i];
+        fill(150);
+        stroke(150);
+        dotX = padding + (w + gap) * coord[1];
+        dotY = padding + (h + gap) * coord[0];
+        ellipse(dotX + w / 2, dotY + h / 2, w * 0.2);
+      }
+      line(x + w / 2, y + h / 2, dotX + w / 2, dotY + h / 2);
+
+      //Add start dot - at end so overwrites start of line
+      fill(255,0,0);
+      stroke(255,0,0);
+      ellipse(x + w / 2, y + h / 2, w * 0.4);
+    }
+  }
+}
+
+function showCount(val, boardW, boardH) {
+  fill(0);
+  textFont(font, 18);
+  textAlign(CENTER);
+  text('Count: ' + val, boardW - 100, 5, 100, 50);
+}
+
 
 </script>
 

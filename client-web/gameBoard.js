@@ -19,8 +19,8 @@ function GameBoard() {
   this.draw = function() {
     setupPlayerColors();
     drawGameBoard();
-    drawPlayersCards();
-    drawText();
+    drawPlayersCards(['3|H', '4|D', '10|H', '8|D', 'Q|D', 'A|D', '2|S']);
+    drawText('Waiting for players');
   }
 
   ////////////////////////////////////////
@@ -32,7 +32,7 @@ function GameBoard() {
     stroke('#00000050');
     noFill();
     rect(playArea.x, playArea.y, playArea.width, playArea.height);
-    fill('#00000010');
+    fill('#00000020');
     noStroke();
     rect(playArea.x, playArea.boardTop, playArea.width, playArea.boardHeight);
   }
@@ -139,11 +139,27 @@ function GameBoard() {
     image(img, inset + w / 2, inset + h / 2, imgW, imgH);  
   }
 
-  function drawPlayersCards() {
+  function drawPlayersCards(cards) {
+    const gap = 10.0;
+    const padding = 20.0;
+    const playersCardsHeight = (playArea.height - playArea.boardHeight) * 0.7;
+
+    //Bad logic.... should be fixed height then calc width from height, then figure out card start x (with fixed gap?)
+    const cellWidth = (playArea.width - padding * 2 - (cards.length - 1) * gap) / cards.length;
+    const cellHeight = cellWidth / playArea.width * playArea.height;
+
+    textAlign(LEFT);
+    //Dynamic font size
+    const fontSize = Math.floor(cellWidth * 0.55);
+    textFont(font, fontSize);
 
   }
 
-  function drawText() {
+  function drawText(text) {
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textFont(font, 30);
+    text(text, playArea.x, playArea.y, playArea.width, playArea.boardTop - playArea.y);
   }
 
   function setupPlayerColors() {

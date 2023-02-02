@@ -377,7 +377,7 @@ System.out.println(response.toString());
 
 `GET /games`
 
-*Get a list of games. This request returns all the completed game winning sequences as an array. This is primarily used for development and testing to ensure that all different possible winning sequences are tested and result in a win being declared.*
+*Get a list of ended games. This request returns data about the last 100 completed games. For each game the return data is the number of hands played, the winner and the winning sequence. This endpoint is primarily used for statistics and development to ensure that all different possible winning sequences are tested and result in a win being declared.*
 
 > Example responses
 
@@ -386,13 +386,17 @@ System.out.println(response.toString());
 ```json
 [
   {
-    "type": "row",
-    "sequence": [
-      [
-        0,
-        1
+    "handsPlayed": 65,
+    "winner": 1,
+    "winningSequence": {
+      "type": "row",
+      "sequence": [
+        [
+          0,
+          1
+        ]
       ]
-    ]
+    }
   }
 ]
 ```
@@ -408,16 +412,24 @@ System.out.println(response.toString());
 
 Status Code **200**
 
+*Array of GameOutcome objects*
+
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
-|*anonymous*|[[WinningSequence](#schemawinningsequence)]|false|none|[A game winning sequence]|
-|» type|string|false|none|The type of winning sequence. One of 'row', 'col', 'diagDR' and 'diagDL' for row, column, diagonal down and to the right and diagonal down and to the left.|
-|» sequence|[[BoardPosition](#schemaboardposition)]|false|none|The winning sequence as a length 5 array of points on the game board.|
+|*anonymous*|[[GameOutcome](#schemagameoutcome)]|false|none|Array of GameOutcome objects|
+|» handsPlayed|int32|true|none|The number of hands played in this game. Maximum is 104 as a maximum of 52 x 2 cards played.|
+|» winner|int32|true|none|The winner of the game. Either 0 represening no winner (a draw), 1 representing Player 1 or 2 represening Player 2|
+|» winningSequence|[WinningSequence](#schemawinningsequence)|false|none|A game winning sequence|
+|»» type|string|false|none|The type of winning sequence. One of 'row', 'col', 'diagDR' and 'diagDL' for row, column, diagonal down and to the right and diagonal down and to the left.|
+|»» sequence|[[BoardPosition](#schemaboardposition)]|false|none|The winning sequence as a length 5 array of points on the game board.|
 
 #### Enumerated Values
 
 |Property|Value|
 |---|---|
+|winner|0|
+|winner|1|
+|winner|2|
 |type|row|
 |type|col|
 |type|diagDR|
@@ -953,12 +965,15 @@ System.out.println(response.toString());
     ]
   ],
   "winner": 2,
-  "winningSequence": [
-    [
-      0,
-      1
+  "winningSequence": {
+    "type": "row",
+    "sequence": [
+      [
+        0,
+        1
+      ]
     ]
-  ]
+  }
 }
 ```
 
@@ -1754,6 +1769,44 @@ An x, y cooridnate on the board
 
 *None*
 
+<h2 id="tocS_WinningSequence">WinningSequence</h2>
+<!-- backwards compatibility -->
+<a id="schemawinningsequence"></a>
+<a id="schema_WinningSequence"></a>
+<a id="tocSwinningsequence"></a>
+<a id="tocswinningsequence"></a>
+
+```json
+{
+  "type": "row",
+  "sequence": [
+    [
+      0,
+      1
+    ]
+  ]
+}
+
+```
+
+A game winning sequence
+
+### Properties
+
+|Name|Type|Required|Restrictions|Description|
+|---|---|---|---|---|
+|type|string|false|none|The type of winning sequence. One of 'row', 'col', 'diagDR' and 'diagDL' for row, column, diagonal down and to the right and diagonal down and to the left.|
+|sequence|[[BoardPosition](#schemaboardposition)]|false|none|The winning sequence as a length 5 array of points on the game board.|
+
+#### Enumerated Values
+
+|Property|Value|
+|---|---|
+|type|row|
+|type|col|
+|type|diagDR|
+|type|diagDL|
+
 <h2 id="tocS_GameState">GameState</h2>
 <!-- backwards compatibility -->
 <a id="schemagamestate"></a>
@@ -1792,12 +1845,15 @@ An x, y cooridnate on the board
     ]
   ],
   "winner": 2,
-  "winningSequence": [
-    [
-      0,
-      1
+  "winningSequence": {
+    "type": "row",
+    "sequence": [
+      [
+        0,
+        1
+      ]
     ]
-  ]
+  }
 }
 
 ```
@@ -1814,7 +1870,7 @@ Game state information. Always returns 'status' and 'players'. Other properties 
 |nextPlayer|int32|false|none|The number of the next player. 1 = Player 1, 2 = Player 2.|
 |boardState|[[BoardRow](#schemaboardrow)]|false|none|The current state of the game board - same for each player - sent as a 10 row array of BoardRow objects.|
 |winner|int32|false|none|The number of the player who won. 1 = Player 1, 2 = Player 2. Note that 0 indicates that no player won - ie game was cancelled before a Player won the game.|
-|winningSequence|[[BoardPosition](#schemaboardposition)]|false|none|The array of board positions that represent the winning sequence.|
+|winningSequence|[WinningSequence](#schemawinningsequence)|false|none|The winning sequence object, containing the type of win and a length 5 array of winning points on the game board.|
 
 #### Enumerated Values
 
@@ -1848,41 +1904,45 @@ User information
 |name|string|true|none|The player's name|
 |color|string|true|none|The player's color|
 
-<h2 id="tocS_WinningSequence">WinningSequence</h2>
+<h2 id="tocS_GameOutcome">GameOutcome</h2>
 <!-- backwards compatibility -->
-<a id="schemawinningsequence"></a>
-<a id="schema_WinningSequence"></a>
-<a id="tocSwinningsequence"></a>
-<a id="tocswinningsequence"></a>
+<a id="schemagameoutcome"></a>
+<a id="schema_GameOutcome"></a>
+<a id="tocSgameoutcome"></a>
+<a id="tocsgameoutcome"></a>
 
 ```json
 {
-  "type": "row",
-  "sequence": [
-    [
-      0,
-      1
+  "handsPlayed": 65,
+  "winner": 1,
+  "winningSequence": {
+    "type": "row",
+    "sequence": [
+      [
+        0,
+        1
+      ]
     ]
-  ]
+  }
 }
 
 ```
 
-A game winning sequence
+The data set for the outcome of a game
 
 ### Properties
 
 |Name|Type|Required|Restrictions|Description|
 |---|---|---|---|---|
-|type|string|false|none|The type of winning sequence. One of 'row', 'col', 'diagDR' and 'diagDL' for row, column, diagonal down and to the right and diagonal down and to the left.|
-|sequence|[[BoardPosition](#schemaboardposition)]|false|none|The winning sequence as a length 5 array of points on the game board.|
+|handsPlayed|int32|true|none|The number of hands played in this game. Maximum is 104 as a maximum of 52 x 2 cards played.|
+|winner|int32|true|none|The winner of the game. Either 0 represening no winner (a draw), 1 representing Player 1 or 2 represening Player 2|
+|winningSequence|[WinningSequence](#schemawinningsequence)|false|none|The winning sequence object, containing the type of win and a length 5 array of winning points on the game board.|
 
 #### Enumerated Values
 
 |Property|Value|
 |---|---|
-|type|row|
-|type|col|
-|type|diagDR|
-|type|diagDL|
+|winner|0|
+|winner|1|
+|winner|2|
 

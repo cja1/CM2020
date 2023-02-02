@@ -42,6 +42,21 @@ var principalId;
  *       items:
  *         type: int32
  * 
+ *     WinningSequence:
+ *       type: object
+ *       description: A game winning sequence
+ *       properties:
+ *         type:
+ *           type: string
+ *           enum: [row, col, diagDR, diagDL]
+ *           description: The type of winning sequence. One of 'row', 'col', 'diagDR' and 'diagDL' for row, column, diagonal down and to the right and diagonal down and to the left.
+ *           example: row
+ *         sequence:
+ *           type: array
+ *           description: The winning sequence as a length 5 array of points on the game board.
+ *           items:
+ *             $ref: '#/components/schemas/BoardPosition' 
+
  *     GameState:
  *       type: object
  *       description: Game state information. Always returns 'status' and 'players'. Other properties depend on game status - <ul><li><b>status = 'waitingForPlayers'</b> returns 'status', 'players'</li><li><b>status = 'active'</b> returns 'status', 'players', 'nextPlayer', 'boardState', 'cards'</li><li><b>status = 'ended'</b> returns 'status', 'players', 'winner', 'boardState'</li></ul>
@@ -77,10 +92,9 @@ var principalId;
  *           description: The number of the player who won. 1 = Player 1, 2 = Player 2. Note that 0 indicates that no player won - ie game was cancelled before a Player won the game.
  *           example: 2
  *         winningSequence:
- *           type: array
- *           description: The array of board positions that represent the winning sequence.
- *           items:
- *             $ref: '#/components/schemas/BoardPosition' 
+ *           type: object
+ *           description: The winning sequence object, containing the type of win and a length 5 array of winning points on the game board.
+ *           $ref: '#/components/schemas/WinningSequence' 
  * 
  * /games/{code}:
  *   get:

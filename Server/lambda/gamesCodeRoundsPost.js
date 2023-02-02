@@ -295,29 +295,9 @@ function winningSeqDiagUR(r,c) {
   return { type: 'diagUR', sequence: [ [r, c], [r - 1, c + 1], [r - 2, c + 2], [r - 3, c + 3], [r - 4, c + 4] ] };
 }
 
-//Returns object with didWin boolean and winningSequence array containing the winning sequence
+//Returns object with didWin boolean and winningSequence array containing the winning sequence type and sequence
 function getWinState(boardStateArray) {
-  //Test corners first - only need 4 long
-  //Top row
-  if (areCellsSameRow(boardStateArray, 0, 1, 4)) { return { didWin: true, winningSequence: winningSeqRow(0, 0) }; }
-  if (areCellsSameRow(boardStateArray, 0, 5, 4)) { return { didWin: true, winningSequence: winningSeqRow(0, 5) }; }
-  //Bottom row
-  if (areCellsSameRow(boardStateArray, 9, 1, 4)) { return { didWin: true, winningSequence: winningSeqRow(9, 0) }; }
-  if (areCellsSameRow(boardStateArray, 9, 5, 4)) { return { didWin: true, winningSequence: winningSeqRow(9, 5) }; }
-  //First col
-  if (areCellsSameCol(boardStateArray, 1, 0, 4)) { return { didWin: true, winningSequence: winningSeqCol(0, 0) }; }
-  if (areCellsSameCol(boardStateArray, 5, 0, 4)) { return { didWin: true, winningSequence: winningSeqCol(5, 0) }; }
-  //Last col
-  if (areCellsSameCol(boardStateArray, 1, 9, 4)) { return { didWin: true, winningSequence: winningSeqCol(0, 9) }; }
-  if (areCellsSameCol(boardStateArray, 5, 9, 4)) { return { didWin: true, winningSequence: winningSeqCol(5, 9) }; }
-  //Diagonals - downwards to right
-  if (areCellsSameDiagDownRight(boardStateArray, 1, 1, 4)) { return { didWin: true, winningSequence: winningSeqDiagDR(0, 0) }; }
-  if (areCellsSameDiagDownRight(boardStateArray, 5, 5, 4)) { return { didWin: true, winningSequence: winningSeqDiagDR(5, 5) }; }
-  //Diagonals - Upwards to right
-  if (areCellsSameDiagUpRight(boardStateArray, 4, 5, 4)) { return { didWin: true, winningSequence: winningSeqDiagUR(4, 5) }; }
-  if (areCellsSameDiagUpRight(boardStateArray, 8, 1, 4)) { return { didWin: true, winningSequence: winningSeqDiagUR(9, 0) }; }
-
-  //Now test all rows from 0..9 and cols from 0..5
+  //Test all rows from 0..9 and cols from 0..5
   for (var row = 0; row < 10; row++) {
     for (var col = 0; col < 6; col++) {
       if (areCellsSameRow(boardStateArray, row, col, 5)) { return { didWin: true, winningSequence: winningSeqRow(row, col) }; }
@@ -341,6 +321,27 @@ function getWinState(boardStateArray) {
       if (areCellsSameDiagUpRight(boardStateArray, row, col, 5)) { return { didWin: true, winningSequence: winningSeqDiagUR(row, col) }; }
     }
   }
+
+  //Now test corners - only need 4 long
+  //Top row
+  if (areCellsSameRow(boardStateArray, 0, 1, 4)) { return { didWin: true, winningSequence: winningSeqRow(0, 0) }; }
+  if (areCellsSameRow(boardStateArray, 0, 5, 4)) { return { didWin: true, winningSequence: winningSeqRow(0, 5) }; }
+  //Bottom row
+  if (areCellsSameRow(boardStateArray, 9, 1, 4)) { return { didWin: true, winningSequence: winningSeqRow(9, 0) }; }
+  if (areCellsSameRow(boardStateArray, 9, 5, 4)) { return { didWin: true, winningSequence: winningSeqRow(9, 5) }; }
+  //First col
+  if (areCellsSameCol(boardStateArray, 1, 0, 4)) { return { didWin: true, winningSequence: winningSeqCol(0, 0) }; }
+  if (areCellsSameCol(boardStateArray, 5, 0, 4)) { return { didWin: true, winningSequence: winningSeqCol(5, 0) }; }
+  //Last col
+  if (areCellsSameCol(boardStateArray, 1, 9, 4)) { return { didWin: true, winningSequence: winningSeqCol(0, 9) }; }
+  if (areCellsSameCol(boardStateArray, 5, 9, 4)) { return { didWin: true, winningSequence: winningSeqCol(5, 9) }; }
+  //Diagonals - downwards to right
+  if (areCellsSameDiagDownRight(boardStateArray, 1, 1, 4)) { return { didWin: true, winningSequence: winningSeqDiagDR(0, 0) }; }
+  if (areCellsSameDiagDownRight(boardStateArray, 5, 5, 4)) { return { didWin: true, winningSequence: winningSeqDiagDR(5, 5) }; }
+  //Diagonals - Upwards to right
+  if (areCellsSameDiagUpRight(boardStateArray, 4, 5, 4)) { return { didWin: true, winningSequence: winningSeqDiagUR(4, 5) }; }
+  if (areCellsSameDiagUpRight(boardStateArray, 8, 1, 4)) { return { didWin: true, winningSequence: winningSeqDiagUR(9, 0) }; }
+
   return { didWin: false };
 }
 
