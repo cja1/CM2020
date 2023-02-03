@@ -1,20 +1,25 @@
-
 //global for the game board display
 var gameBoard = null;
 //global for game business logic
 var gameLogic = null;
+//global for all network requests
+var networkRequests = null;
+//global for displaying any errors
+var errorDisplay = null;
 
-var gameState = {"players": [{"name": "Player08801","color": "d9efd8","isMe": true},{"name": "COMPUTER","color": "ff0000","isMe": false}]}
-
-var boardState = [];
+//global font for all text - preloaded
 var font;
+//global play area - defines the frame where all text / board is displayed
 var playArea = { x: 0, y: 0, width: 0, height: 0, boardTop: 0, boardHeight: 0 };
+//global state flag - used to ensure we aren't re-creating the board on each P5 frame (as un-necessary)
 var didChangeState = true;
 
 function preload() {
   gameBoard = new GameBoard();
   gameBoard.preload();
   gameLogic = new GameLogic();
+  networkRequests = new NetworkRequests();
+  errorDisplay = new ErrorDisplay();
   font = loadFont('fonts/SpecialElite-Regular.ttf')
 }
 
@@ -22,12 +27,17 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   setupPlayArea();
   gameBoard.setup();
+  gameLogic.createGame();
 }
 
 function draw() {
   if (didChangeState) {
+    gameBoard.setup();
     gameBoard.draw();
     didChangeState = false;
+  }
+  if (errorDisplay.haveErrors()) {
+    errorDisplay.draw();
   }
 }
 
@@ -39,7 +49,7 @@ function windowResized() {
 }
 
 function setupPlayArea() {
-  //Overall playe area dimensions
+  //Overall play area dimensions
   playArea.height = windowHeight * 0.9;
   playArea.width = Math.min(playArea.height * 0.6, windowWidth);
   playArea.x = (windowWidth - playArea.width) / 2.0;
@@ -54,26 +64,24 @@ function setupPlayArea() {
   playArea.playerCardsTop = playArea.boardTop + playArea.boardHeight;
 }
 
-
-//support mouse clicks inside visualisation if supported
-/*function mouseClicked(){
-}*/
-
 //use touch started rather than mouse click - seems to be more reliable on touch devices
 function touchStarted() {
-  const ret = gameBoard.hitCheck();
-  if (ret === false) {
-    //no state change - ignore
-    return;
+  //Logic here: create game / join game etc. Depends on state.
+
+  //See if clicked on the game board. Returns false to ignore, true to change state and a card (string) if valid card play.
+  //Only relevant if player's turn.... check state.
+  if (gameLogic.isPlayersTurn()) {
+    const ret = gameBoard.hitCheck();
+    if (ret === true) {
+      //state change - refresh
+      gameBoard.draw();
+    }
+    else if (ret !== false) {
+      //Card returned: play this card
+      console.log('playing card ' + ret);
+      gameBoard.draw();    
+    }    
   }
-  else if (ret === true) {
-    //state change - refresh
-    gameBoard.draw();
-    return
-  }
-  //Card returned: play this card
-  console.log('playing card ' + ret);
-  gameBoard.draw();
 
 }
 

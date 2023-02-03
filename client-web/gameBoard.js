@@ -1,26 +1,34 @@
 //Handles game board display
 function GameBoard() {
   
+  //local constants
+  const highlightColor = 'yellow';
+
   //local vars
   //player colours
   var colPlayer1, colPlayer2;
+
   //static card images (heart, spade, club, diamond)
   var images = {};
+
   //lookups for board card position and player cards - to support hit check on click events
   var boardCardFrames = {};
   var playerCardFrames = {};
+
+  //selected card on the board
   var selectedCard = null;
 
   this.preload = function() {
+    //load card images into images object
     images['C'] = loadImage('images/club.png');
     images['S'] = loadImage('images/spade.png');
     images['H'] = loadImage('images/heart.png');
     images['D'] = loadImage('images/diamond.png');
-  }
+  };
 
   this.setup = function() {
     drawBackground();
-  }
+  };
 
   this.draw = function() {
     boardCardFrames = {};
@@ -29,9 +37,9 @@ function GameBoard() {
     setupPlayerColors();
 
     drawGameBoard();
-    drawPlayersCards(['3|H', '4|D', '10|H', '8|D', 'Q|D', 'A|D', '2|S']);
-    drawText('Waiting for players');
-  }
+    drawPlayersCards();
+    drawTitleText();
+  };
 
   //Check for clicks on cards - game board or player cards
   //If we have a click on a player card FOLLOWED BY a click on the relevant board cell AND validMove,return the card played.
@@ -100,6 +108,7 @@ function GameBoard() {
   // Private functions
   ////////////////////////////////////////
 
+  //Game background green colour with outline boxes
   function drawBackground() {
     background('#505B4D');
     stroke('#00000050');
@@ -110,6 +119,7 @@ function GameBoard() {
     rect(playArea.x, playArea.boardTop, playArea.width, playArea.boardHeight);
   }
 
+  //Draw the complete game board. Also deals with highlighted cells and cells which a player owns.
   function drawGameBoard() {
     const gap = 5.0;
 
@@ -143,12 +153,13 @@ function GameBoard() {
 
         //Check board state and set the colour to the player if player owns this cell
         var colPlayer = null;
-        if (('boardState' in gameState) && (gameState.boardState[row][col] != '')) {
-          colPlayer = (gameState.boardState[row][col] == 'p1') ? colPlayer1 : colPlayer2;
+        const boardStateCell = gameLogic.boardState(row, col);
+        if (boardStateCell !== false && boardStateCell != '') {
+          colPlayer = (boardStateCell == 'p1') ? colPlayer1 : colPlayer2;
         }
 
         const card = board[row][col];
-        const isHighlighted = selectedCard == card;  //selected card equals the card we are displaying
+        const isHighlighted = (selectedCard == card);  //selected card equals the card we are displaying
         drawGameCell(cellWidth, cellHeight, card, colPlayer, isHighlighted);
         pop();
 
@@ -164,10 +175,11 @@ function GameBoard() {
     }
   }
 
+  //Draw a cell on the game board. If isHighlighted then set colour to the highlight colour
   function drawGameCell(w, h, card, colPlayer, isHighlighted) {
     //Draw playing card background
     const rounded = 5.0;
-    fill(isHighlighted ? 'yellow' : 255);
+    fill(isHighlighted ? highlightColor : 255);
     rect(0, 0, w, h, rounded);
 
     //draw card
@@ -203,6 +215,7 @@ function GameBoard() {
 
   }
 
+  //Draw a corner card - add the 4 images appropriately sized
   function drawCorner(w, h) {
     var inset = w / 15.0;
     var wFactor = 2.7;
@@ -228,7 +241,11 @@ function GameBoard() {
     image(img, inset + w / 2, inset + h / 2, imgW, imgH);  
   }
 
-  function drawPlayersCards(cards) {
+  //Draw all the cards in the players hand - below the game board
+  function drawPlayersCards() {
+
+    var cards = gameLogic.cards();  //returns empty array if game not playing
+
     //Calculate dimensions
     const cardHeight = playArea.playerCardsHeight * 0.5;
     const cardWidth = cardHeight * 2 / 3; //width is 2/3 height - looks 'right'
@@ -260,10 +277,11 @@ function GameBoard() {
     }
   }
 
+  //draw the player card at the current position
   function drawPlayerCard(card, w, h, isHighlighted) {
     //Background
     const rounded = 5.0;
-    fill(isHighlighted ? 'yellow' : 255);
+    fill(isHighlighted ? highlightColor : 255);
     rect(0, 0, w, h, rounded);
 
     const cardParts = card.split('|');
@@ -273,26 +291,26 @@ function GameBoard() {
     text(cardParts[0], w * 0.15, h * 0.25);
 
     //add image
-    //HERE: remove background from images. Make fixed size / heart in the middle of a (200 x 200?) box
     const img = images[cardParts[1]];
     const imgW = w / 2.1;
     const imgH = imgW / img.width * img.height;
     image(img, w / 2 / 1.1, h / 2 * 1.25, imgW, imgH);      
   }
 
-  function drawText(str) {
+  //draw the title text
+  function drawTitleText() {
+    const str = gameLogic.statusString();
     fill(255);
     textAlign(CENTER, CENTER);
-    const fontSize = Math.floor(playArea.width * 0.09);
+    const fontSize = Math.floor(playArea.width * 0.08);
     textFont(font, fontSize);
     text(str, playArea.x, playArea.y, playArea.width, playArea.boardTop - playArea.y);
   }
 
+  //setup player colours - from gameState.players color values
   function setupPlayerColors() {
-    if ('players' in gameState) {
-      colPlayer1 = color('#' + gameState.players[0].color);
-      colPlayer2 = color('#' + gameState.players[1].color);
-    }
+    colPlayer1 = gameLogic.colPlayer1();
+    colPlayer2 = gameLogic.colPlayer2();
   }
 
 }
