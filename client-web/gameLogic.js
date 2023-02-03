@@ -13,9 +13,10 @@ function GameLogic() {
   var gameState = {};
 
   this.createGame = function() {
+    spinnerDisplay.showSpinner();
     networkRequests.createGame(
       function() {
-        //Call get game to get and update state
+        //Call getStatus to get and update state
         networkRequests.getStatus(
           function(state) {
             overallState = overallStates[1];
@@ -26,24 +27,137 @@ function GameLogic() {
             networkRequests.waitForStatusChange(
               gameState.status,
               function(state) {
+                spinnerDisplay.hideSpinner();
                 gameState = state;
                 didChangeState = true;
               },
-              function(err) { errorDisplay.addError(err); }
-            )
+              function(err) {
+                overallState = overallStates[0];
+                spinnerDisplay.hideSpinner();
+                errorDisplay.addError(err);
+              }
+            );
           },
-          function(err) { errorDisplay.addError(err); }
+          function(err) {
+            overallState = overallStates[0];
+            spinnerDisplay.hideSpinner();
+            errorDisplay.addError(err);
+          }
         );
       },
       function(err) {
         //add error
+        overallState = overallStates[0];
+        spinnerDisplay.hideSpinner();
         errorDisplay.addError(err);
       }
     );
   };
 
+  this.joinGame = function(code) {
+    spinnerDisplay.showSpinner();
+    networkRequests.joinGame(code,
+      function() {
+        //Call getStatus to get and update state
+        networkRequests.getStatus(
+          function(state) {
+            overallState = overallStates[1];
+            gameState = state;
+            didChangeState = true;
+            spinnerDisplay.hideSpinner();
+
+            //Wait for player change as originating player starts
+            networkRequests.waitForPlayerChange(
+              opponentPlayerNum(),
+              function(state) {
+                //Note: status might be 'ended' if game won
+                gameState = state;
+                didChangeState = true;
+              },
+              function(err) {
+                overallState = overallStates[0];
+                errorDisplay.addError(err);
+              }
+            );
+
+          },
+          function(err) {
+            overallState = overallStates[0];
+            spinnerDisplay.hideSpinner();
+            errorDisplay.addError(err);
+          }
+        );
+      },
+      function(err) {
+        //add error
+        overallState = overallStates[0];
+        spinnerDisplay.hideSpinner();
+        errorDisplay.addError(err);
+      }
+    );
+  };
+
+  this.getStatus = function() {
+    if (!networkRequests.haveGameCode()) {
+      overallState = overallStates[0];  //no game
+      return;
+    }
+    spinnerDisplay.showSpinner();
+    networkRequests.getStatus(
+      function(state) {
+        spinnerDisplay.hideSpinner();
+        overallState = overallStates[1];
+        gameState = state;
+        didChangeState = true;
+      },
+      function(err) {
+        spinnerDisplay.hideSpinner();
+        errorDisplay.addError(err);
+      }
+    );
+  };
+
+  this.playRound = function(card, row, col) {
+    spinnerDisplay.showSpinner();
+    networkRequests.playRound(card, row, col,
+      function() {
+        //successfully played round - reset selected card and get updated game status
+        gameBoard.resetCardSelection();
+        networkRequests.getStatus(
+          function(state) {
+            spinnerDisplay.hideSpinner();
+            gameState = state;
+            didChangeState = true;
+
+            //Wait for player change as now other player's turn
+            networkRequests.waitForPlayerChange(
+              opponentPlayerNum(),
+              function(state) {
+                //Note: status might be 'ended' if game won
+                gameState = state;
+                didChangeState = true;
+              },
+              function(err) {
+                errorDisplay.addError(err);
+              }
+            );
+
+          },
+          function(err) {
+            spinnerDisplay.hideSpinner();
+            errorDisplay.addError(err);
+          }
+        );
+      },
+      function(err) {
+        spinnerDisplay.hideSpinner();
+        errorDisplay.addError(err);        
+      }
+    );
+  };
+
   //Get the board state for this row / col. Returns false if no board state
-  this.boardState = function(row, col) {
+  this.boardStateCell = function(row, col) {
     if (!('boardState' in gameState)) { return false; }
     return gameState.boardState[row][col];    
   };
@@ -72,6 +186,10 @@ function GameLogic() {
           str += winningPlayer.name + ' wins!';
         }
       }
+      else {
+        //In game - show which player's turn
+        str = this.isPlayersTurn() ? 'Your turn' : (gameState.players[gameState.nextPlayer - 1].name + '\'s turn');
+      }
     }
     return str;
   }
@@ -87,7 +205,7 @@ function GameLogic() {
 
   //Return true if this player's turn
   this.isPlayersTurn = function() {
-    if (!('state' in gameState) || (gameState.state != 'active')) {
+    if (!('status' in gameState) || (gameState.status != 'active')) {
       return false;
     }
     //if the next player is me return true.
@@ -95,30 +213,39 @@ function GameLogic() {
     return gameState.players[gameState.nextPlayer - 1].isMe;
   };
 
-  this.isValidMove = function(card, row, col) {
-    if (!('boardState' in gameState)) { return false; }
-
-    const state = gameState.boardState[row][col];
+  //return one of 'normal', 'oneEyedJack' or 'twoEyedJack'
+  this.cardType = function(card) {
+    if (card == null) { return false; }
     const cardParts = card.split('|');
-
-    if (cardParts[0] != 'J') {
-      //normal card - valid if playing on an empty cell (already checked card matches the board card)
-      return (state == '');
-    }
-
+    if (cardParts[0] != 'J') { return 'normal'; }
     const isOneEyed = (['S', 'H'].includes(cardParts[1]));
-    if (isOneEyed) {
+    return isOneEyed ? 'oneEyedJack' : 'twoEyedJack';
+  }
+
+  this.isValidMove = function(card, row, col) {
+    const boardStateCell = this.boardStateCell(row, col);
+    if (boardStateCell === false) { return false; }
+
+    switch (this.cardType(card)) {
+    case 'normal':
+      //normal card - valid if playing on an empty cell (already checked card matches the board card)
+      return (boardStateCell == '');
+      break;
+
+    case 'oneEyedJack':
       //One-eyed Jacks are 'anti-wild'
       //Rule: "remove one marker chip from the game board belonging to your opponent"
-      //Valid moves are all places where boardState is opponent player
-      return (state == opponentPlayer())
-    }
-    else {
+      //Valid moves are all places where boardStateCell is opponent player
+      return (boardStateCell == this.opponentPlayer())
+      break;
+
+    case 'twoEyedJack':
       //Not one-eyed
       //Two-eyed Jacks are 'wild'
       //Rule: "place one of your marker chips on any open space on the game board"
       //Valid moves are all places that are empty
-      return (state == '');
+      return (boardStateCell == '');
+      break;
     }
   };
 
@@ -126,7 +253,7 @@ function GameLogic() {
     gameState = state;
   };
 
-  function opponentPlayer() {
+  this.opponentPlayer = function() {
     //return p1 if opponent is p1 else p2
     if (!('players' in gameState)) {
       return false;
@@ -135,6 +262,13 @@ function GameLogic() {
       return 'p2';
     }
     return 'p1';
+  };
+
+  //local functions
+  //Returns 1 if I am player 2 and 2 if I am player 1
+  function opponentPlayerNum() {
+    if (gameState.players[0].isMe) { return 2; }
+    return 1;
   }
 
 }

@@ -17,6 +17,7 @@ function GameBoard() {
 
   //selected card on the board
   var selectedCard = null;
+  var selectedCardNum = null; //position of the card in the players hand
 
   this.preload = function() {
     //load card images into images object
@@ -41,6 +42,12 @@ function GameBoard() {
     drawTitleText();
   };
 
+  //reset card selection -  called when player plays a card in a round
+  this.resetCardSelection = function() {
+    selectedCard = null;
+    selectedCardNum = null;
+  };
+
   //Check for clicks on cards - game board or player cards
   //If we have a click on a player card FOLLOWED BY a click on the relevant board cell AND validMove,return the card played.
   //If we are changing state (so need a refresh) return true.
@@ -49,28 +56,35 @@ function GameBoard() {
     var frame;
 
     //Start by seeing if selecting a card in player's hand
-    const cards = Object.keys(playerCardFrames);
+    var cards = Object.keys(playerCardFrames);
     for (var i = 0; i < cards.length; i++) {
-      frame = playerCardFrames[cards[i]];
 
-      if (mouseX > frame.x && mouseX < frame.x + frame.w && mouseY > frame.y && mouseY < frame.y + frame.h) {
-        //clicking on a player card... options
-        //#1 If no selected card, select this card
-        if (selectedCard == null) {
-          console.log('selecting card ' + cards[i]);
+      //We might have two cards the same, so playerCardFrames[cards[i]] is an array
+      for (var j = 0; j < playerCardFrames[cards[i]].length; j++) {
+        frame = playerCardFrames[cards[i]][j];
+
+        if (mouseX > frame.x && mouseX < frame.x + frame.w && mouseY > frame.y && mouseY < frame.y + frame.h) {
+          //clicking on a player card... options
+          //#1 If no selected card, select this card
+          if (selectedCard == null) {
+            console.log('selecting card ' + cards[i] + ', pos in hand ' + frame.cardNum);
+            selectedCard = cards[i];
+            selectedCardNum = frame.cardNum;
+            return true;
+          }
+          //#2 If the selected one, de-select
+          if ((selectedCard == cards[i]) && (selectedCardNum == frame.cardNum)) {
+            console.log('de-selecting card ' + selectedCard);
+            selectedCard = null;
+            selectedCardNum = null;
+            return true;
+          }
+          //#3 Change the selected card to this one
           selectedCard = cards[i];
+          selectedCardNum = frame.cardNum;
+          console.log('selecting card ' + cards[i] + ', pos in hand ' + frame.cardNum);
           return true;
         }
-        //#2 If the selected one, de-select
-        if (selectedCard == cards[i]) {
-          console.log('de-selecting card ' + selectedCard);
-          selectedCard = null;
-          return true;
-        }
-        //#3 Change the selected card to this one
-        selectedCard = cards[i];
-        console.log('selecting card ' + cards[i]);
-        return true;
       }
     }
 
@@ -81,26 +95,50 @@ function GameBoard() {
     }
 
     //See if we have a click on one of the the relevant 2 board cards
-    const frames = boardCardFrames[selectedCard];
-    //Frames always contains exactly 2 frames for the 2 cards on the board
-    for (var i = 0; i < frames.length; i++) {
-      frame = frames[i];
-      if (mouseX > frame.x && mouseX < frame.x + frame.w && mouseY > frame.y && mouseY < frame.y + frame.h) {
-        //This is a click on the card - check a valid move for this card
-        if (gameLogic.isValidMove(selectedCard, frame.row, frame.col)) {
-          console.log('playing card ' + selectedCard);
-          return selectedCard;
-        }
-        else {
-          //ignore click
-          return false;
+    //Logic depends on card type
+    switch(gameLogic.cardType(selectedCard)) {
+
+    case 'normal':
+      //Only need to check the frames for this card
+      const frames = boardCardFrames[selectedCard];
+
+      //Frames always contains exactly 2 frames for the 2 cards on the board
+      for (var i = 0; i < frames.length; i++) {
+        frame = frames[i];
+        if (mouseX > frame.x && mouseX < frame.x + frame.w && mouseY > frame.y && mouseY < frame.y + frame.h) {
+          //This is a click on the card - check a valid move for this card
+          if (gameLogic.isValidMove(selectedCard, frame.row, frame.col)) {
+            console.log('playing card ' + selectedCard);
+            return { card: selectedCard, row: frame.row, col: frame.col };
+          }
         }
       }
+      break;
+
+    case 'oneEyedJack': case 'twoEyedJack':
+      cards = Object.keys(boardCardFrames);
+      for (var i = 0; i < cards.length; i++) {
+
+        const frames = boardCardFrames[cards[i]];
+
+        for (var j = 0; j < frames.length; j++) {
+          frame = frames[j];
+          if (mouseX > frame.x && mouseX < frame.x + frame.w && mouseY > frame.y && mouseY < frame.y + frame.h) {
+            //This is a click on the card - check a valid move for this card
+            if (gameLogic.isValidMove(selectedCard, frame.row, frame.col)) {
+              console.log('playing card ' + selectedCard);
+              return { card: selectedCard, row: frame.row, col: frame.col };
+            }
+          }
+        }
+      }
+      break;
     }
 
     //We clicked somewhere else - deselect and return false
     console.log('de-selecting card ' + selectedCard);
     selectedCard = null;
+    selectedCardNum = null;
     return true;
   };
 
@@ -153,13 +191,37 @@ function GameBoard() {
 
         //Check board state and set the colour to the player if player owns this cell
         var colPlayer = null;
-        const boardStateCell = gameLogic.boardState(row, col);
+        const boardStateCell = gameLogic.boardStateCell(row, col);
         if (boardStateCell !== false && boardStateCell != '') {
           colPlayer = (boardStateCell == 'p1') ? colPlayer1 : colPlayer2;
         }
 
         const card = board[row][col];
-        const isHighlighted = (selectedCard == card);  //selected card equals the card we are displaying
+        var isHighlighted;
+
+        //Highlight logic depends on selectedCard type
+        switch(gameLogic.cardType(selectedCard)) {
+        case 'normal':
+          //If normal card, highlight if selected card == card
+          isHighlighted = (selectedCard == card);
+          break;
+
+        case 'oneEyedJack':
+          //If one eyed, highlight if this cell is occupied by opponent
+          isHighlighted = (boardStateCell == gameLogic.opponentPlayer());
+          break;
+
+        case 'twoEyedJack':
+          //If two-eyed, highlight if this cell is empty and not corner
+          if (isCorner(row, col)) {
+            isHighlighted = false;
+          }
+          else {
+            isHighlighted = (boardStateCell == '');
+          }
+          break;
+        }
+
         drawGameCell(cellWidth, cellHeight, card, colPlayer, isHighlighted);
         pop();
 
@@ -269,11 +331,15 @@ function GameBoard() {
       const x = playArea.x + padding + (cardWidth + gapX) * i;
       const y = playArea.playerCardsTop + gapY;
       translate(x, y);
-      const isHighlighted = selectedCard == cards[i];  //selected card equals the card we are displaying
+      const isHighlighted = selectedCardNum == i;  //selected card position in hand equals the card we are displaying
       drawPlayerCard(cards[i], cardWidth, cardHeight, isHighlighted);
       pop();
 
-      playerCardFrames[cards[i]] = { x: x, y: y, w: cardWidth, h: cardHeight };
+      //We may have two versions of the same card in the hand, so make an array
+      if (!(cards[i] in playerCardFrames)) {
+        playerCardFrames[cards[i]] = [];
+      }
+      playerCardFrames[cards[i]].push({ x: x, y: y, w: cardWidth, h: cardHeight, cardNum: i });
     }
   }
 
@@ -311,6 +377,14 @@ function GameBoard() {
   function setupPlayerColors() {
     colPlayer1 = gameLogic.colPlayer1();
     colPlayer2 = gameLogic.colPlayer2();
+  }
+
+  function isCorner(row, col) {
+    if (row == 0 && col == 0) { return true; }
+    if (row == 0 && col == 9) { return true; }
+    if (row == 9 && col == 9) { return true; }
+    if (row == 9 && col == 0) { return true; }
+    return false;
   }
 
 }

@@ -6,6 +6,8 @@ var gameLogic = null;
 var networkRequests = null;
 //global for displaying any errors
 var errorDisplay = null;
+//global for spinner overlay
+var spinnerDisplay = null;
 
 //global font for all text - preloaded
 var font;
@@ -20,6 +22,8 @@ function preload() {
   gameLogic = new GameLogic();
   networkRequests = new NetworkRequests();
   errorDisplay = new ErrorDisplay();
+  spinnerDisplay = new SpinnerDisplay();
+
   font = loadFont('fonts/SpecialElite-Regular.ttf')
 }
 
@@ -27,10 +31,11 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   setupPlayArea();
   gameBoard.setup();
-  gameLogic.createGame();
+  gameLogic.getStatus();
 }
 
 function draw() {
+
   if (didChangeState) {
     gameBoard.setup();
     gameBoard.draw();
@@ -38,6 +43,9 @@ function draw() {
   }
   if (errorDisplay.haveErrors()) {
     errorDisplay.draw();
+  }
+  if (spinnerDisplay.isSpinning()) {
+    spinnerDisplay.draw();
   }
 }
 
@@ -68,6 +76,11 @@ function setupPlayArea() {
 function touchStarted() {
   //Logic here: create game / join game etc. Depends on state.
 
+  //Ignore if spinner showing
+  if (spinnerDisplay.isSpinning()) {
+    return;
+  }
+
   //See if clicked on the game board. Returns false to ignore, true to change state and a card (string) if valid card play.
   //Only relevant if player's turn.... check state.
   if (gameLogic.isPlayersTurn()) {
@@ -77,9 +90,8 @@ function touchStarted() {
       gameBoard.draw();
     }
     else if (ret !== false) {
-      //Card returned: play this card
-      console.log('playing card ' + ret);
-      gameBoard.draw();    
+      //Object returned with card, row and col set: play this card
+      gameLogic.playRound(ret.card, ret.row, ret.col);
     }    
   }
 

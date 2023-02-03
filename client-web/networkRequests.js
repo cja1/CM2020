@@ -7,8 +7,9 @@ function NetworkRequests() {
   //Poll interval in seconds
   const POLL_INTERVAL = 5;
 
-  //current game code
-  var code;
+  this.haveGameCode = function() {
+    return localStorage.getItem('code') != null;
+  };
 
   //Create a game
   this.createGame = function(successFunction, failFunction) {
@@ -19,12 +20,12 @@ function NetworkRequests() {
         headers: { authorization: 'Bearer ' + getDeviceUUID() },
       },
       function(res) {
-        //Save code to this function (not needed elsewhere)
-        code = JSON.parse(res).code;
+        //Save code to local storage to allow browser refresh and game continue
+        const code = JSON.parse(res).code;
+        localStorage.setItem('code', code);
         successFunction(code);
       },
       function(err) {
-        console.log(err);
         failFunction('Unable to create game');
       }
     );
@@ -32,17 +33,44 @@ function NetworkRequests() {
 
   //Join a game
   this.joinGame = function(code, successFunction, failFunction) {
-
+    httpDo(
+      GAMES_END_POINT + '/' + localStorage.getItem('code') + '/players',
+      {
+        method: 'POST',
+        headers: { authorization: 'Bearer ' + getDeviceUUID() }
+      },
+      function(res) {
+        successFunction();
+      },
+      function(err) {
+        console.log(err);
+        failFunction('Unable to join game');
+      }
+    );
   };
 
   //Play a round
   this.playRound = function(card, row, col, successFunction, failFunction) {
+    httpDo(
+      GAMES_END_POINT + '/' + localStorage.getItem('code') + '/rounds',
+      {
+        method: 'POST',
+        headers: { authorization: 'Bearer ' + getDeviceUUID() },
+        body: JSON.stringify({ card: card, moveRow: row, moveCol: col }),
+      },
+      function(res) {
+        successFunction();
+      },
+      function(err) {
+        failFunction('Unable to play round');
+      }
+    );
   };
 
   //Get game status
   this.getStatus = function(successFunction, failFunction) {
     httpDo(
-      GAMES_END_POINT + '/' + code,
+      GAMES_END_POINT + '/' + localStorage.getItem('code'),
       {
         method: 'GET',
         headers: { authorization: 'Bearer ' + getDeviceUUID() }
@@ -52,7 +80,7 @@ function NetworkRequests() {
       },
       function(err) {
         console.log(err);
-        failFunction('Unable to find game with code ' + code);
+        failFunction('Unable to find game with code ' + localStorage.getItem('code'));
       }
     );
   };
@@ -60,25 +88,76 @@ function NetworkRequests() {
   //Wait for game status change
   this.waitForStatusChange = function(currentStatus, successFunction, failFunction) {
     //Repeatedly poll game endpoint waiting for status to change from currentStatus
-    setTimeout(getStatus(
+    setTimeout(getStatusRepeat, POLL_INTERVAL * 1000, this, currentStatus, successFunction, failFunction);
+  };
+
+  //Wait for game nextPlayer change
+  this.waitForPlayerChange = function(currentPlayer, successFunction, failFunction) {
+    //Repeatedly poll game endpoint waiting for nextPlayer to change from currentPlayer
+    setTimeout(getPlayerRepeat, POLL_INTERVAL * 1000, this, currentPlayer, successFunction, failFunction);
+  };
+
+  this.deleteGame = function(successFunction, failFunction) {
+      httpDo(
+      GAMES_END_POINT + '/' + localStorage.getItem('code'),
+      {
+        method: 'DELETE',
+        headers: { authorization: 'Bearer ' + getDeviceUUID() },
+      },
+      function(res) {
+        //Clear code from local storage
+        localStorage.removeItem('code');
+        successFunction();
+      },
+      function(err) {
+        failFunction('Unable to delete game');
+      }
+    );
+  };
+
+  ///////////////////
+  //local functions
+  ///////////////////
+
+  //repeatedly call get game state until status changes.
+  function getStatusRepeat(thisRef, currentStatus, successFunction, failFunction) {
+    thisRef.getStatus(
       function(state) {
         //If status changed, call success function else re-call this function
         if (state.status != currentStatus) {
           successFunction(state);
           return;
         }
-        //HERE! not structured right!
-        setTimeout()
+        //Call again
+        setTimeout(getStatusRepeat, POLL_INTERVAL * 1000, thisRef, currentStatus, successFunction, failFunction);
       },
-      function() {}
-    ), POLL_INTERVAL * 1000);
-  };
+      function(err) {
+        failFunction(err);
+      }
+    )
+  }
 
-  this.deleteGame = function(successFunction, failFunction) {
+  //repeatedly call get game state until nextPlayer
+  function getPlayerRepeat(thisRef, currentPlayer, successFunction, failFunction) {
+    console.log('in getPlayerRepeat', currentPlayer);
+    thisRef.getStatus(
+      function(state) {
+        //If nextPlayer changed, call success function else re-call this function
+        //Note: can also be no player as game just won
+        if ((state.status == 'ended') || (state.nextPlayer != currentPlayer)) {
+          console.log('changed state');
+          successFunction(state);
+          return;
+        }
+        //Call again
+        setTimeout(getPlayerRepeat, POLL_INTERVAL * 1000, thisRef, currentPlayer, successFunction, failFunction);
+      },
+      function(err) {
+        failFunction(err);
+      }
+    )
+  }
 
-  };
-
-  //local functions
   //Get this device's UUID from localStorage if set. If not, create.
   function getDeviceUUID() {
     if (localStorage.getItem('deviceUUID') !== null) {

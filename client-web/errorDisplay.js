@@ -9,6 +9,7 @@ function ErrorDisplay() {
   this.addError = function(error) {
     //add error with timestamp in seconds
     errors.push({ error: error, timestamp: Math.floor(Date.now() / 1000) });
+    console.log('added error', errors);
   };
 
   this.haveErrors = function() {
