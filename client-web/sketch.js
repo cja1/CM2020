@@ -2,6 +2,9 @@
 var gameBoard = null;
 //global for game business logic
 var gameLogic = null;
+//global for the game initiation (create / join) display
+var gameInitiationDisplay = null;
+
 //global for all network requests
 var networkRequests = null;
 //global for displaying any errors
@@ -20,6 +23,8 @@ function preload() {
   gameBoard = new GameBoard();
   gameBoard.preload();
   gameLogic = new GameLogic();
+  gameInitiationDisplay = new GameInitiationDisplay();
+
   networkRequests = new NetworkRequests();
   errorDisplay = new ErrorDisplay();
   spinnerDisplay = new SpinnerDisplay();
@@ -30,22 +35,28 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
   setupPlayArea();
-  //gameLogic.deleteGame();
+  gameLogic.deleteGame();
   gameLogic.getStatus();
 }
 
 function draw() {
 
   if (didChangeState) {
+    //Always setup game board - overall background
     gameBoard.setup();
-    gameBoard.draw();
-    didChangeState = false;
-  }
 
-  if (!gameLogic.isInGame()) {
-    //Show create / join screen
-    //HERE
-    //Create a new 'game initiation display object and show it? with button hit checks etc.'
+    if (!gameLogic.isInGame() || gameLogic.isWaitingForPlayers()) {
+      //Show create / join screen
+      gameInitiationDisplay.draw();
+      spinnerDisplay.reset(); //to force re-draw of spinner background
+    }
+    else {
+      //Clear gameInitiationDisplay (text input)
+      gameInitiationDisplay.clear();
+      //Show game board
+      gameBoard.draw();
+    }
+    didChangeState = false;
   }
 
   if (errorDisplay.haveErrors()) {
@@ -83,15 +94,45 @@ function setupPlayArea() {
 //use touch started rather than mouse click - seems to be more reliable on touch devices
 function touchStarted() {
 
-  //Logic here: create game / join game etc. Depends on state.
+  //HERE: spinner - support cancel (deletes game)
+  //Add yes / no type screen for 'start new game' (at end) and 'are you sure you want to end game'
+  //Error display...
+  //Need to test joining a game logic too...
 
   //Ignore if spinner showing
   if (spinnerDisplay.isSpinning()) {
     return;
   }
 
+  //If errors, clicks on errors only
+  if (errorDisplay.haveErrors()) {
+    errorDisplay.hitCheck();
+    return;
+  }
+
+  //If not in game, clicks are on the gameInitiationDisplay
+  if (!gameLogic.isInGame()) {
+    const ret = gameInitiationDisplay.hitCheck();
+    if (ret === false) { return; }
+
+    if (ret.action == 'create') {
+      gameLogic.createGame(ret.isPlayer2Bot);
+    }
+    else if (ret.action == 'join') {
+      //join
+      const code = ret.code;
+      gameLogic.joinGame(code);
+    }
+    else if (ret.action == 'toggleBot') {
+      gameInitiationDisplay.toggleBot();
+    }
+    //re-draw the board
+    didChangeState = true;
+    return;
+  }
+
   //See if clicked on the game board. Returns false to ignore, true to change state and a card (string) if valid card play.
-  //Only relevant if player's turn.... check state.
+  //Only relevant if player's turn.
   if (gameLogic.isPlayersTurn()) {
     const ret = gameBoard.hitCheck();
     if (ret === true) {
@@ -105,8 +146,3 @@ function touchStarted() {
   }
 
 }
-
-function keyPressed() {
-  //controls.keyPressed(keyCode);
-}
-

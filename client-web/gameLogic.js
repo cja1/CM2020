@@ -13,12 +13,21 @@ function GameLogic() {
   var gameState = {};
 
   this.isInGame = function() {
-    return overallState == overallStates[1];
+    if (overallState == overallStates[0]) { return false; }
+    if (gameState.status == 'waitingForPlayers') { return false; }
+    return true;
   };
 
-  this.createGame = function() {
+  this.isWaitingForPlayers = function() {
+    if (overallState == overallStates[0]) { return false; }
+    if (gameState.status == 'waitingForPlayers') { return true; }
+    return false;
+  };
+
+  this.createGame = function(isPlayer2Bot) {
     spinnerDisplay.showSpinner();
     networkRequests.createGame(
+      isPlayer2Bot,
       function() {
         //Call getStatus to get and update state
         networkRequests.getStatus(
@@ -281,6 +290,13 @@ function GameLogic() {
       return 'p2';
     }
     return 'p1';
+  };
+
+  this.isValidGameCode = function(str) {
+    //Check length and character set
+    //Include 0, 1, I and O as valid - although server will not return these chars - simplifies testing
+    if (str.trim().length != 4) { return false; }
+    return str.match(/^[ABCDEFGHIJKLMNOPQRSTUVWXY01Z23456789]+$/) !== null;
   };
 
   //local functions

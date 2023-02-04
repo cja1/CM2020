@@ -11,14 +11,23 @@ function NetworkRequests() {
     return localStorage.getItem('code') != null;
   };
 
+  this.gameCode = function() {
+    return localStorage.getItem('code');
+  };
+
   //Create a game
-  this.createGame = function(successFunction, failFunction) {
+  this.createGame = function(isPlayer2Bot, successFunction, failFunction) {
+    var postObject = {
+      method: 'POST',
+      headers: { authorization: 'Bearer ' + getDeviceUUID() },
+    };
+    if (isPlayer2Bot) {
+      postObject['body'] = JSON.stringify({ isPlayer2Bot: true });
+    }
+
     httpDo(
       GAMES_END_POINT,
-      {
-        method: 'POST',
-        headers: { authorization: 'Bearer ' + getDeviceUUID() },
-      },
+      postObject,
       function(res) {
         //Save code to local storage to allow browser refresh and game continue
         const code = JSON.parse(res).code;

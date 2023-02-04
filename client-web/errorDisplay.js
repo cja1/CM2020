@@ -29,4 +29,9 @@ function ErrorDisplay() {
   this.draw = function() {
     //Show any errors
   };
+
+  this.hitCheck = function() {
+    //if (mouseX > frame.x && mouseX < frame.x + frame.w && mouseY > frame.y && mouseY < frame.y + frame.h) {
+  };
+  
 }
