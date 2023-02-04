@@ -19,7 +19,7 @@
 
 **client-web**: A P5-based web client as an MVP version of the game. NOT IMPLEMENTED YET! Access it here: [https://compsci.s3.eu-west-1.amazonaws.com/CM2020/client-web/index.html](https://compsci.s3.eu-west-1.amazonaws.com/CM2020/client-web/index.html)
 
-Note: the API documentation is also available online in both [JSON](https://compsci.s3.eu-west-1.amazonaws.com/CM2020/swagger.json) and [YAML](https://compsci.s3.eu-west-1.amazonaws.com/CM2020/swagger.yaml) formats.
-
-
-The API is implemented using AWS API Gateway and the endpoint is [https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod](https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod)
+Notes:
+* API uptime monitoring and status page available [here](https://sequence.betteruptime.com) 
+* The API documentation is also available online in both [JSON](https://compsci.s3.eu-west-1.amazonaws.com/CM2020/swagger.json) and [YAML](https://compsci.s3.eu-west-1.amazonaws.com/CM2020/swagger.yaml) formats.
+* The API is implemented using AWS API Gateway and the endpoint is [https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod](https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod)
