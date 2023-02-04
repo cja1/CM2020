@@ -232,7 +232,6 @@ function boardGameWithCards() {
 var images = {};
 const imgW = 15.0;
 const imgWBig = 18.0;
-var font;
 
 function setup() {
    createCanvas(width, height);
@@ -241,7 +240,6 @@ function setup() {
    images['S'] = loadImage('images/spade.png');
    images['H'] = loadImage('images/heart.png');
    images['D'] = loadImage('images/diamond.png');
-   font = loadFont('fonts/SpecialElite-Regular.ttf')
 }
 
 function windowResized() {
@@ -260,7 +258,7 @@ function drawGameBoard() {
 
   stroke(150,150,150);
   textAlign(CENTER);
-  textFont(font, 18);
+  textSize(14);
 
   const w = (width - 2 * padding - 9 * gap) / 10;
   const h = (height - 2 * padding - 9 * gap) / 10;
