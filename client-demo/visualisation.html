@@ -68,7 +68,6 @@ $(document).ready(function() {
 //P5 code to draw game board
 //////////////////////////////////////////////////////////////////////////////
 
-var font;
 var count = 0;
 var haveDrawnBackground = false;
 var haveStartedDrawingLines = false;
@@ -79,7 +78,6 @@ var handsPlayedDistrib = { 0: 0, 10: 0, 20: 0, 30: 0, 40: 0, 50: 0, 60: 0, 70: 0
 function setup() {
    createCanvas(windowWidth, windowHeight);
    background(255);
-   font = loadFont('fonts/SpecialElite-Regular.ttf')
 }
 
 function windowResized() {
@@ -166,7 +164,7 @@ function drawGameBoard(title, boardW, boardH) {
   }
   //Add title
   fill(0);
-  textFont(font, 18);
+  textSize(16);
   textAlign(CENTER);
   text(title, 0, 5, boardW, 30);
 }
@@ -204,7 +202,7 @@ function drawGameOutcome(sequence, boardW, boardH) {
 
 function showCount(val, boardW, boardH) {
   fill(0);
-  textFont(font, 18);
+  textSize(12);
   textAlign(CENTER);
   text('Count: ' + val, boardW - 100, 5, 100, 50);
 }
