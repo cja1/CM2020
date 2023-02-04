@@ -1,0 +1,3 @@
+#!/bin/bash
+
+aws s3 --region eu-west-1 sync "/Users/callen/Documents/Personal/CompSci/CM2020 ASP/CM2020/client-demo" s3://compsci/CM2020/client-demo --exclude 'deploy' --exclude '.DS_Store' --acl public-read
