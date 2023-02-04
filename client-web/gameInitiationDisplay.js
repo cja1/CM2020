@@ -49,11 +49,12 @@ function GameInitiationDisplay() {
     frameToggleBot.h = playArea.height * 0.05;
     drawToggle('Play against bot', frameToggleBot, toggleBotIsOn);
 
-    //Draw text input for code
     if (isWaitingForPlayers) {
+      //Hide text input for code
       this.clear();
     }
     else {
+      //Draw text input for code
       createCodeInput();
     }
 

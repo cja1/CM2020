@@ -4,6 +4,8 @@ var gameBoard = null;
 var gameLogic = null;
 //global for the game initiation (create / join) display
 var gameInitiationDisplay = null;
+//global gameCancelDisplay
+var gameCancelDisplay = null;
 
 //global for all network requests
 var networkRequests = null;
@@ -24,6 +26,7 @@ function preload() {
   gameBoard.preload();
   gameLogic = new GameLogic();
   gameInitiationDisplay = new GameInitiationDisplay();
+  gameCancelDisplay = new GameCancelDisplay();
 
   networkRequests = new NetworkRequests();
   errorDisplay = new ErrorDisplay();
@@ -45,8 +48,12 @@ function draw() {
     //Always setup game board - overall background
     gameBoard.setup();
 
-    if (!gameLogic.isInGame() || gameLogic.isWaitingForPlayers()) {
-      //Show create / join screen
+    if (gameCancelDisplay.isDisplayed) {
+      //HERE - show yes / no overlay
+      gameInitiationDisplay.clear();  //removes text box
+    }
+    else if (!gameLogic.isInGame() || gameLogic.isWaitingForPlayers()) {
+      //If not in game, or in game and waiting for players, show game initiation screen
       gameInitiationDisplay.draw();
       spinnerDisplay.reset(); //to force re-draw of spinner background
     }
@@ -94,19 +101,18 @@ function setupPlayArea() {
 //use touch started rather than mouse click - seems to be more reliable on touch devices
 function touchStarted() {
 
-  //HERE: spinner - support cancel (deletes game)
-  //Add yes / no type screen for 'start new game' (at end) and 'are you sure you want to end game'
-  //Error display...
-  //Need to test joining a game logic too...
-
-  //Ignore if spinner showing
-  if (spinnerDisplay.isSpinning()) {
-    return;
-  }
-
   //If errors, clicks on errors only
   if (errorDisplay.haveErrors()) {
     errorDisplay.hitCheck();
+    return;
+  }
+
+  //If spinner showing, click on close only
+  if (spinnerDisplay.isSpinning()) {
+    if (spinnerDisplay.hitCheck()) {
+      //game cancel - check
+      gameCancelDisplay.isDisplayed = true;
+    }
     return;
   }
 

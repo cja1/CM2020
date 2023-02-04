@@ -4,6 +4,7 @@ function SpinnerDisplay() {
   //local vars
   var isShowingSpinner = false;
   var haveShownBackground = false;
+  var closeButton = null;
 
   //Show the spinner
   this.showSpinner = function() {
@@ -26,8 +27,8 @@ function SpinnerDisplay() {
       haveShownBackground = true;
     }
 
-    //Show spinner centred on board if in game, else low spinner below 'Join' button
-    const showCentredSpinner = gameLogic.isInGame();
+    //Show spinner centred on board if in game and not waiting for players, else low spinner below 'Join' button
+    const showCentredSpinner = gameLogic.isInGame() && !gameLogic.isWaitingForPlayers();
 
     push();
 
@@ -37,7 +38,7 @@ function SpinnerDisplay() {
     const x = playArea.x + playArea.width / 2 - size / 2;
     var y = playArea.boardTop + (playArea.boardHeight) / 2 - size / 2;
     if (!showCentredSpinner) {
-      y = y + playArea.height / 2.5;
+      y = y + playArea.height / 2.35;
     }
     rect(x, y, size, size, 10);
 
@@ -48,6 +49,10 @@ function SpinnerDisplay() {
     strokeWeight(Math.floor(size / 10));
     const rads = (2 * PI) * (frameCount % 50) / 50;
     arc(x + size / 2, y + size / 2, size / 2, size / 2, rads, rads + 2 * PI * 0.8, OPEN);
+
+    //Close control - cancels whole game
+    closeButton = new CloseButton(playArea.x + playArea.width * 0.965, playArea.y + playArea.width * (1 - 0.965), 255);
+    closeButton.draw();
 
     pop();
   };
@@ -60,6 +65,10 @@ function SpinnerDisplay() {
   //Hide the spinner
   this.hideSpinner = function() {
     isShowingSpinner = false;
+  };
+
+  this.hitCheck = function() {
+    return closeButton.hitCheck();
   };
 
 }

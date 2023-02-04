@@ -24,7 +24,7 @@ function NetworkRequests() {
     if (isPlayer2Bot) {
       postObject['body'] = JSON.stringify({ isPlayer2Bot: true });
     }
-
+    
     httpDo(
       GAMES_END_POINT,
       postObject,
@@ -43,17 +43,22 @@ function NetworkRequests() {
   //Join a game
   this.joinGame = function(code, successFunction, failFunction) {
     httpDo(
-      GAMES_END_POINT + '/' + localStorage.getItem('code') + '/players',
+      GAMES_END_POINT + '/' + code + '/players',
       {
         method: 'POST',
         headers: { authorization: 'Bearer ' + getDeviceUUID() }
       },
       function(res) {
+        //Success - store code to localStorage
+        localStorage.setItem('code', code);
         successFunction();
       },
       function(err) {
-        console.log(err);
-        failFunction('Unable to join game');
+        var msg = 'Unable to join game with code \'' + code + '\'';
+        if (err.status == 404) { msg = 'Game code \'' + code + '\' not found'; }
+        if (err.status == 409) { msg = 'This game already has 2 players'; }
+        if (err.status == 422) { msg = 'You have already joined this game'; }
+        failFunction(msg);
       }
     );
   };

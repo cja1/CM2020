@@ -13,15 +13,11 @@ function GameLogic() {
   var gameState = {};
 
   this.isInGame = function() {
-    if (overallState == overallStates[0]) { return false; }
-    if (gameState.status == 'waitingForPlayers') { return false; }
-    return true;
+    return (overallState == overallStates[1]);
   };
 
   this.isWaitingForPlayers = function() {
-    if (overallState == overallStates[0]) { return false; }
-    if (gameState.status == 'waitingForPlayers') { return true; }
-    return false;
+    return (overallState == overallStates[1]) && (gameState.status == 'waitingForPlayers');
   };
 
   this.createGame = function(isPlayer2Bot) {
