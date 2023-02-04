@@ -174,32 +174,36 @@ function getGame() {
   });
 }
 
-$('#createGame').on('click', function(event) {
-  createGame();
-  event.preventDefault();
-});
+$(document).ready(function() {
 
-$('#botPlayRound').on('click', function(event) {
-  botPlayRound();
-  event.preventDefault();
-});
+  $('#createGame').on('click', function(event) {
+    createGame();
+    event.preventDefault();
+  });
 
-$('#botAutoplay').on('click', function(event) {
-  if (timer == null) {
-    $('#botPlayRound').addClass('disabled');
-    timer = setInterval(botPlayRound, 3000);
-    botPlayRound(); //trigger now!
-    $('#botAutoplay').html('Stop Autoplay');
-  }
-  else {
-    $('#botAutoplay').html('Bot Autoplay'); 
-    clearInterval(timer);
-    timer = null;
-    if (code != null) {
-      $('#botPlayRound').removeClass('disabled');
+  $('#botPlayRound').on('click', function(event) {
+    botPlayRound();
+    event.preventDefault();
+  });
+
+  $('#botAutoplay').on('click', function(event) {
+    if (timer == null) {
+      $('#botPlayRound').addClass('disabled');
+      timer = setInterval(botPlayRound, 3000);
+      botPlayRound(); //trigger now!
+      $('#botAutoplay').html('Stop Autoplay');
     }
-  }
-  event.preventDefault();
+    else {
+      $('#botAutoplay').html('Bot Autoplay'); 
+      clearInterval(timer);
+      timer = null;
+      if (code != null) {
+        $('#botPlayRound').removeClass('disabled');
+      }
+    }
+    event.preventDefault();
+  });
+
 });
 
 //////////////////////////////////////////////////////////////////////////////

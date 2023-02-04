@@ -30,7 +30,7 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
   setupPlayArea();
-  gameBoard.setup();
+  //gameLogic.deleteGame();
   gameLogic.getStatus();
 }
 
@@ -41,9 +41,17 @@ function draw() {
     gameBoard.draw();
     didChangeState = false;
   }
+
+  if (!gameLogic.isInGame()) {
+    //Show create / join screen
+    //HERE
+    //Create a new 'game initiation display object and show it? with button hit checks etc.'
+  }
+
   if (errorDisplay.haveErrors()) {
     errorDisplay.draw();
   }
+
   if (spinnerDisplay.isSpinning()) {
     spinnerDisplay.draw();
   }
@@ -74,6 +82,7 @@ function setupPlayArea() {
 
 //use touch started rather than mouse click - seems to be more reliable on touch devices
 function touchStarted() {
+
   //Logic here: create game / join game etc. Depends on state.
 
   //Ignore if spinner showing

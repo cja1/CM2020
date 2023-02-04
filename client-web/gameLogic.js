@@ -12,6 +12,10 @@ function GameLogic() {
   //Hold the game state from the server
   var gameState = {};
 
+  this.isInGame = function() {
+    return overallState == overallStates[1];
+  };
+
   this.createGame = function() {
     spinnerDisplay.showSpinner();
     networkRequests.createGame(
@@ -154,6 +158,21 @@ function GameLogic() {
         errorDisplay.addError(err);        
       }
     );
+  };
+
+  this.deleteGame = function() {
+    spinnerDisplay.showSpinner();
+    networkRequests.deleteGame(
+      function() {
+        overallState = overallStates[0];
+        spinnerDisplay.hideSpinner();
+        didChangeState = true;
+      },
+      function(err) {
+        overallState = overallStates[0];
+        spinnerDisplay.hideSpinner();
+        errorDisplay.addError(err);
+    });
   };
 
   //Get the board state for this row / col. Returns false if no board state

@@ -60,18 +60,21 @@ function getGames() {
   });
 }
 
-getGames();
+$(document).ready(function() {
+  getGames();
+});
 
 //////////////////////////////////////////////////////////////////////////////
 //P5 code to draw game board
 //////////////////////////////////////////////////////////////////////////////
 
-
 var font;
 var count = 0;
 var haveDrawnBackground = false;
-const counts = { 'row': 0, 'col': 0, 'diagDR': 0, 'diagUR': 0 };
-const handsPlayedDistrib = { 0: 0, 10: 0, 20: 0, 30: 0, 40: 0, 50: 0, 60: 0, 70: 0, 80: 0, 90: 0, 100: 0 };
+var haveStartedDrawingLines = false;
+
+var counts = { 'row': 0, 'col': 0, 'diagDR': 0, 'diagUR': 0 };
+var handsPlayedDistrib = { 0: 0, 10: 0, 20: 0, 30: 0, 40: 0, 50: 0, 60: 0, 70: 0, 80: 0, 90: 0, 100: 0 };
 
 function setup() {
    createCanvas(windowWidth, windowHeight);
@@ -81,6 +84,8 @@ function setup() {
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);
+  haveDrawnBackground = false;
+  haveStartedDrawingLines = false;
 }
 
 function draw() {
@@ -98,7 +103,15 @@ function draw() {
   }
 
   if (games.length == 0) { return; } //no data yet
-  if (frameCount == games.length) { //just plotted all points
+
+  if (!haveStartedDrawingLines) {
+    count = 0;
+    counts = { 'row': 0, 'col': 0, 'diagDR': 0, 'diagUR': 0 };
+    handsPlayedDistrib = { 0: 0, 10: 0, 20: 0, 30: 0, 40: 0, 50: 0, 60: 0, 70: 0, 80: 0, 90: 0, 100: 0 };
+    haveStartedDrawingLines = true;
+  }
+
+  if (count == games.length) { //just plotted all points
     //Show counts
     for (var i = 0; i < 4; i++) {
       push();
@@ -108,13 +121,13 @@ function draw() {
       pop();
     }
     console.log(handsPlayedDistrib);
-
     return;
   } 
-  //Stop if no more games or a max of 5,000 games
-  if (frameCount > games.length || count == 5000) { return; }
 
-  const game = games[frameCount];
+  //Stop if no more games or a max of 5,000 games
+  if (count > games.length || count == 5000) { return; }
+
+  const game = games[count];
 
   //Increment histogram data for hands played
   const handsPlayed = game.handsPlayed;

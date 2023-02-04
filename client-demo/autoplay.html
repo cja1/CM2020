@@ -167,16 +167,19 @@ function getGame() {
   });
 }
 
-$('#createGame').on('click', function(event) {
-  createGame();
-  event.preventDefault();
-});
+$(document).ready(function() {
 
-$('#botPlayRound').on('click', function(event) {
-  botPlayRound();
-  event.preventDefault();
-});
+  $('#createGame').on('click', function(event) {
+    createGame();
+    event.preventDefault();
+  });
 
+  $('#botPlayRound').on('click', function(event) {
+    botPlayRound();
+    event.preventDefault();
+  });
+
+});
 
 </script>
 

@@ -254,47 +254,51 @@ function hideMessages() {
   $('#playRoundFail').hide();
 }
 
-$('#createGame').on('click', function(event) {
-  hideMessages();
-  createGame();
-  event.preventDefault();
-});
+$(document).ready(function() {
 
-$('#joinGame').on('click', function(event) {
-  hideMessages();
-  if ($('#joinCode').val().trim().length == 0) {
-    $('#joinGameFail').html('Please enter a game code');
-    $('#joinGameFail').show();
-  }
-  else {
-    joinGame();
-  }
-  event.preventDefault();
-});
+  $('#createGame').on('click', function(event) {
+    hideMessages();
+    createGame();
+    event.preventDefault();
+  });
 
-$('#playRound').on('click', function(event) {
-  hideMessages();
-  if ($('#roundCode').val().trim().length == 0) {
-    $('#playRoundFail').html('Please enter a game code');
-    $('#playRoundFail').show();
-  }
-  else {
-    playRound();
-  }
-  event.preventDefault();
-});
+  $('#joinGame').on('click', function(event) {
+    hideMessages();
+    if ($('#joinCode').val().trim().length == 0) {
+      $('#joinGameFail').html('Please enter a game code');
+      $('#joinGameFail').show();
+    }
+    else {
+      joinGame();
+    }
+    event.preventDefault();
+  });
+
+  $('#playRound').on('click', function(event) {
+    hideMessages();
+    if ($('#roundCode').val().trim().length == 0) {
+      $('#playRoundFail').html('Please enter a game code');
+      $('#playRoundFail').show();
+    }
+    else {
+      playRound();
+    }
+    event.preventDefault();
+  });
 
 
-$('#getGame').on('click', function(event) {
-  hideMessages();
-  if ($('#getCode').val().trim().length == 0) {
-    $('#getGameFail').html('Please enter a game code');
-    $('#getGameFail').show();
-  }
-  else {
-    getGame();
-  }
-  event.preventDefault();
+  $('#getGame').on('click', function(event) {
+    hideMessages();
+    if ($('#getCode').val().trim().length == 0) {
+      $('#getGameFail').html('Please enter a game code');
+      $('#getGameFail').show();
+    }
+    else {
+      getGame();
+    }
+    event.preventDefault();
+  });
+
 });
 
 

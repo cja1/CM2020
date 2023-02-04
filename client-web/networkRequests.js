@@ -98,7 +98,12 @@ function NetworkRequests() {
   };
 
   this.deleteGame = function(successFunction, failFunction) {
-      httpDo(
+    if (localStorage.getItem('code') == null) {
+      //nothing to delete
+      successFunction();
+      return;
+    }
+    httpDo(
       GAMES_END_POINT + '/' + localStorage.getItem('code'),
       {
         method: 'DELETE',
@@ -110,6 +115,7 @@ function NetworkRequests() {
         successFunction();
       },
       function(err) {
+        localStorage.removeItem('code');
         failFunction('Unable to delete game');
       }
     );
