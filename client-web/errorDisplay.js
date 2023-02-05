@@ -6,12 +6,12 @@ function ErrorDisplay() {
   //Local variables
   var errors = [];
   var closeButtons = [];
-  var haveShowErrors = false;
+  var haveShown = false;
 
   this.addError = function(error) {
     //add error with timestamp in seconds
     errors.push({ error: error, timestamp: Math.floor(Date.now() / 1000) });
-    haveShowErrors = false;
+    haveShown = false;
   };
 
   this.haveErrors = function() {
@@ -24,7 +24,7 @@ function ErrorDisplay() {
         out.push(error);
       }
       else {
-        haveShowErrors = false;
+        haveShown = false;
         didChangeState = true;
       }
     });
@@ -33,7 +33,7 @@ function ErrorDisplay() {
   };
 
   this.draw = function() {
-    if (haveShowErrors) { return; }
+    if (haveShown) { return; }
 
     const MAX_ERRORS = 10;
     const errorPlusGapHeight = playArea.height / MAX_ERRORS;
@@ -69,14 +69,15 @@ function ErrorDisplay() {
   };
 
   this.hitCheck = function() {
+    var didClick = false;
     for (var i = 0; i < closeButtons.length; i++) {
       if (closeButtons[i].hitCheck()) {
         //remove error at i
         removeError(i);
-        haveShowErrors = false;
-        didChangeState = true;
+        haveShown = false;
       }
     }
+    return didClick;
   };
 
   //private functions

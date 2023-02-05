@@ -30,6 +30,7 @@ function GameLogic() {
           function(state) {
             overallState = overallStates[1];
             gameState = state;
+            gameCancelDisplay.clearDisplayed(); //hide if showing - as state changed
             didChangeState = true;
 
             //Wait for a player to join
@@ -38,11 +39,13 @@ function GameLogic() {
               function(state) {
                 spinnerDisplay.hideSpinner();
                 gameState = state;
+                gameCancelDisplay.clearDisplayed(); //hide if showing - as state changed
                 didChangeState = true;
               },
               function(err) {
                 overallState = overallStates[0];
                 spinnerDisplay.hideSpinner();
+                gameCancelDisplay.clearDisplayed(); //hide if showing - as state changed
                 errorDisplay.addError(err);
               }
             );
@@ -50,6 +53,7 @@ function GameLogic() {
           function(err) {
             overallState = overallStates[0];
             spinnerDisplay.hideSpinner();
+            gameCancelDisplay.clearDisplayed(); //hide if showing - as state changed
             errorDisplay.addError(err);
           }
         );
@@ -58,6 +62,7 @@ function GameLogic() {
         //add error
         overallState = overallStates[0];
         spinnerDisplay.hideSpinner();
+        gameCancelDisplay.clearDisplayed(); //hide if showing - as state changed
         errorDisplay.addError(err);
       }
     );
@@ -72,6 +77,7 @@ function GameLogic() {
           function(state) {
             overallState = overallStates[1];
             gameState = state;
+            gameCancelDisplay.clearDisplayed(); //hide if showing - as state changed
             didChangeState = true;
             spinnerDisplay.hideSpinner();
 
@@ -81,10 +87,12 @@ function GameLogic() {
               function(state) {
                 //Note: status might be 'ended' if game won
                 gameState = state;
+                gameCancelDisplay.clearDisplayed(); //hide if showing - as state changed
                 didChangeState = true;
               },
               function(err) {
                 overallState = overallStates[0];
+                gameCancelDisplay.clearDisplayed(); //hide if showing - as state changed
                 errorDisplay.addError(err);
               }
             );
@@ -92,6 +100,7 @@ function GameLogic() {
           },
           function(err) {
             overallState = overallStates[0];
+            gameCancelDisplay.clearDisplayed(); //hide if showing - as state changed
             spinnerDisplay.hideSpinner();
             errorDisplay.addError(err);
           }
@@ -101,6 +110,7 @@ function GameLogic() {
         //add error
         overallState = overallStates[0];
         spinnerDisplay.hideSpinner();
+        gameCancelDisplay.clearDisplayed(); //hide if showing - as state changed
         errorDisplay.addError(err);
       }
     );
@@ -216,6 +226,10 @@ function GameLogic() {
       }
     }
     return str;
+  }
+
+  this.isEnded = function() {
+    return('status' in gameState) && (gameState.status == 'ended');
   }
 
   this.colPlayer1 = function() {

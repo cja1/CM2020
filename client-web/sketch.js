@@ -38,7 +38,6 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
   setupPlayArea();
-  gameLogic.deleteGame();
   gameLogic.getStatus();
 }
 
@@ -48,8 +47,9 @@ function draw() {
     //Always setup game board - overall background
     gameBoard.setup();
 
-    if (gameCancelDisplay.isDisplayed) {
-      //HERE - show yes / no overlay
+    if (gameCancelDisplay.isDisplayed()) {
+      //Show continue / cancel overlay
+      gameCancelDisplay.draw();
       gameInitiationDisplay.clear();  //removes text box
     }
     else if (!gameLogic.isInGame() || gameLogic.isWaitingForPlayers()) {
@@ -70,7 +70,7 @@ function draw() {
     errorDisplay.draw();
   }
 
-  if (spinnerDisplay.isSpinning()) {
+  if (spinnerDisplay.isSpinning() && !gameCancelDisplay.isDisplayed()) {
     spinnerDisplay.draw();
   }
 }
@@ -101,9 +101,34 @@ function setupPlayArea() {
 //use touch started rather than mouse click - seems to be more reliable on touch devices
 function touchStarted() {
 
+  //If continue / cancel show this
+  if (gameCancelDisplay.isDisplayed()) {
+    const ret = gameCancelDisplay.hitCheck();
+    if (ret === false) { return; }  //keep displaying
+
+    //Either Cancel or OK hit - hide display
+    gameCancelDisplay.clearDisplayed();
+    if (ret.action == 'continue') {
+      //Action depends on state
+      if (gameLogic.isEnded()) {
+        //Back to game initiation
+      }
+      else {
+        //HERE: the code for spinner on refresh if in game not working...
+        
+        //Delete the game
+        gameLogic.deleteGame();
+      }
+    }
+    didChangeState = true;
+    return;
+  }
+
   //If errors, clicks on errors only
   if (errorDisplay.haveErrors()) {
-    errorDisplay.hitCheck();
+    if (errorDisplay.hitCheck()) {
+      didChangeState = true;
+    }
     return;
   }
 
@@ -111,7 +136,9 @@ function touchStarted() {
   if (spinnerDisplay.isSpinning()) {
     if (spinnerDisplay.hitCheck()) {
       //game cancel - check
-      gameCancelDisplay.isDisplayed = true;
+      gameCancelDisplay.title = 'Are you sure you want to end this game?';
+      gameCancelDisplay.setDisplayed();
+      didChangeState = true;
     }
     return;
   }

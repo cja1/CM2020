@@ -6,6 +6,8 @@ function GameInitiationDisplay() {
   const frameButtonJoin = { x: 0, y: 0, w: 0, h: 0 };
   const frameToggleBot = { x: 0, y: 0, w: 0, h: 0 };
   var toggleBotIsOn = false;
+  var buttonCreate = null;
+  var buttonJoin = null;
 
   var codeInput = createInput();
 
@@ -34,13 +36,15 @@ function GameInitiationDisplay() {
     frameButtonCreate.y = playArea.boardTop + playArea.height * 0.3;
     frameButtonCreate.w = playArea.width * 0.4;
     frameButtonCreate.h = playArea.height * 0.1;
-    drawButton('Create Game', frameButtonCreate);
+    buttonCreate = new Button('Create Game', frameButtonCreate.x, frameButtonCreate.y, frameButtonCreate.w, frameButtonCreate.h, 255);
+    buttonCreate.draw(); 
 
     frameButtonJoin.x = playArea.x + playArea.width * 0.1;
     frameButtonJoin.y = playArea.boardTop + playArea.height * 0.55;
     frameButtonJoin.w = playArea.width * 0.4;
     frameButtonJoin.h = playArea.height * 0.1;
-    drawButton('Join Game', frameButtonJoin);
+    buttonJoin = new Button('Join Game', frameButtonJoin.x, frameButtonJoin.y, frameButtonJoin.w, frameButtonJoin.h, 255);
+    buttonJoin.draw(); 
 
     //Bot toggle
     frameToggleBot.x = playArea.x + playArea.width * 0.1;
@@ -71,11 +75,11 @@ function GameInitiationDisplay() {
   };
 
   this.hitCheck = function() {
-    if (isButtonHit(frameButtonCreate)) {
+    if (buttonCreate.hitCheck()) {
       return({ action: 'create', isPlayer2Bot: toggleBotIsOn });
     }
 
-    if (isButtonHit(frameButtonJoin)) {
+    if (buttonJoin.hitCheck()) {
       const code = codeInput.value().toUpperCase();
       //Check valid code
       if (!gameLogic.isValidGameCode(code)) {
@@ -103,22 +107,6 @@ function GameInitiationDisplay() {
   }
 
   //local functions
-  //Draw button
-  function drawButton(str, frame) {
-    //Rect
-    stroke(255);
-    noFill();
-    rect(frame.x, frame.y, frame.w, frame.h, 10);
-
-    //text
-    const fontSize = Math.floor(playArea.width * 0.05);
-    textFont(font, fontSize);
-    textAlign(CENTER, CENTER);
-    fill(255);
-    noStroke();
-    text(str, frame.x, frame.y, frame.w, frame.h);
-  }
-
   function drawToggle(str, frame, isOn) {
     const width = frame.w / 7;
     const height = width * 2.5 / 5;
