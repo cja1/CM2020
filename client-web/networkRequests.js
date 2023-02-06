@@ -65,6 +65,10 @@ function NetworkRequests() {
 
   //Play a round
   this.playRound = function(card, row, col, successFunction, failFunction) {
+    if (localStorage.getItem('code') == null) {
+      failFunction('Unable to play round - game not active');
+      return;
+    }
     httpDo(
       GAMES_END_POINT + '/' + localStorage.getItem('code') + '/rounds',
       {
@@ -83,6 +87,10 @@ function NetworkRequests() {
 
   //Get game status
   this.getStatus = function(successFunction, failFunction) {
+    if (localStorage.getItem('code') == null) {
+      successFunction(null);
+      return;
+    }
     httpDo(
       GAMES_END_POINT + '/' + localStorage.getItem('code'),
       {
@@ -135,20 +143,24 @@ function NetworkRequests() {
     );
   };
 
+  this.clearGameCode = function() {
+    localStorage.removeItem('code');    
+  }
+
   ///////////////////
   //local functions
   ///////////////////
 
   //repeatedly call get game state until status changes.
   function getStatusRepeat(thisRef, currentStatus, successFunction, failFunction) {
-    if (!this.haveGameCode()) {
+    if (!thisRef.haveGameCode()) {
       //not in game - has been cancelled out of loop
       successFunction(null);
     }
     thisRef.getStatus(
       function(state) {
         //If status changed, call success function else re-call this function
-        if (state.status != currentStatus) {
+        if ((state == null) || (state.status != currentStatus)) {
           successFunction(state);
           return;
         }
@@ -158,17 +170,20 @@ function NetworkRequests() {
       function(err) {
         failFunction(err);
       }
-    )
+    );
   }
 
   //repeatedly call get game state until nextPlayer
   function getPlayerRepeat(thisRef, opponentPlayer, successFunction, failFunction) {
-    console.log('in getPlayerRepeat', opponentPlayer);
+    if (!thisRef.haveGameCode()) {
+      //not in game - has been cancelled out of loop
+      successFunction(null);
+    }
     thisRef.getStatus(
       function(state) {
         //If nextPlayer changed, call success function else re-call this function
-        //Note: can also be no player as game just won
-        if ((state.status == 'ended') || (state.nextPlayer != opponentPlayer)) {
+        //Note: can also be null (game deleted) or no player (game just won)
+        if ((state == null) || (state.status == 'ended') || (state.nextPlayer != opponentPlayer)) {
           console.log('changed state');
           successFunction(state);
           return;
@@ -179,7 +194,7 @@ function NetworkRequests() {
       function(err) {
         failFunction(err);
       }
-    )
+    );
   }
 
   //Get this device's UUID from localStorage if set. If not, create.

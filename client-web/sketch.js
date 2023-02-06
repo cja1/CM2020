@@ -45,6 +45,8 @@ function setup() {
 
 function draw() {
 
+  //HERE: havent got game reset logic quite right: gameInitiationDisplay is not re-showing the text box.
+  
   if (didChangeState) {
     //Always setup game board - overall background
     gameBoard.setup();
@@ -68,10 +70,12 @@ function draw() {
     didChangeState = false;
   }
 
+  //Overlay errors if have errors
   if (errorDisplay.haveErrors()) {
     errorDisplay.draw();
   }
 
+  //Keep spinner spinning
   if (spinnerDisplay.isSpinning() && !gameCancelDisplay.isDisplayed()) {
     spinnerDisplay.draw();
   }
@@ -107,19 +111,17 @@ function touchStarted() {
   if (gameCancelDisplay.isDisplayed()) {
     const ret = gameCancelDisplay.hitCheck();
     if (ret === false) { return; }  //keep displaying
-
     //Either Cancel or OK hit - hide display
     gameCancelDisplay.clearDisplayed();
     if (ret.action == 'continue') {
       //Action depends on state
       if (gameLogic.isEnded()) {
         //Back to game initiation
-        //HERE: logic here
+        gameLogic.resetGame();
       }
       else {
         //Delete the game
         gameLogic.deleteGame();
-        //HERE: not re-showing the game code text entry box?
       }
     }
     didChangeState = true;
@@ -155,8 +157,7 @@ function touchStarted() {
     }
     else if (ret.action == 'join') {
       //join
-      const code = ret.code;
-      gameLogic.joinGame(code);
+      gameLogic.joinGame(ret.code);
     }
     else if (ret.action == 'toggleBot') {
       gameInitiationDisplay.toggleBot();
@@ -166,18 +167,23 @@ function touchStarted() {
     return;
   }
 
-  //See if clicked on the game board. Returns false to ignore, true to change state and a card (string) if valid card play.
-  //Only relevant if player's turn.
-  if (gameLogic.isPlayersTurn()) {
-    const ret = gameBoard.hitCheck();
-    if (ret === true) {
-      //state change - refresh
-      gameBoard.draw();
-    }
-    else if (ret !== false) {
-      //Object returned with card, row and col set: play this card
-      gameLogic.playRound(ret.card, ret.row, ret.col);
-    }    
+  //See if clicked on the game board. Returns false to ignore. Returns object with action if click on card or close or refresh
+  const ret = gameBoard.hitCheck();
+  if (ret === false) { return; }
+
+  if (ret.action == 'refresh') {
+    //state change - refresh
+    didChangeState = true;
+  }
+  else if (ret.action == 'playRound') {
+    //Object returned has card, row and col set: play this card
+    gameLogic.playRound(ret.card, ret.row, ret.col);
+  }
+  else if (ret.action == 'cancel') {
+    //game cancel - check
+    gameCancelDisplay.title = gameLogic.isEnded() ? 'Reset game and go back to start screen?' : 'Are you sure you want to end this game?';
+    gameCancelDisplay.setDisplayed();
+    didChangeState = true;
   }
 
 }

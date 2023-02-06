@@ -19,6 +19,9 @@ function GameBoard() {
   var selectedCard = null;
   var selectedCardNum = null; //position of the card in the players hand
 
+  //close button
+  var closeButton = null;
+
   this.preload = function() {
     //load card images into images object
     images['C'] = loadImage('images/club.png');
@@ -40,6 +43,7 @@ function GameBoard() {
     drawGameBoard();
     drawPlayersCards();
     drawTitleText();
+    drawCloseButton();
   };
 
   //reset card selection -  called when player plays a card in a round
@@ -55,7 +59,17 @@ function GameBoard() {
   this.hitCheck = function() {
     var frame;
 
-    //Start by seeing if selecting a card in player's hand
+    //Close button
+    if (closeButton.hitCheck()) {
+      console.log('close button tapped');
+      return { action: 'cancel' };
+    }
+    if (!gameLogic.isPlayersTurn()) {
+      //no card clicks possible - return
+      return false;
+    }
+
+    //See if selecting a card in player's hand
     var cards = Object.keys(playerCardFrames);
     for (var i = 0; i < cards.length; i++) {
 
@@ -70,20 +84,20 @@ function GameBoard() {
             console.log('selecting card ' + cards[i] + ', pos in hand ' + frame.cardNum);
             selectedCard = cards[i];
             selectedCardNum = frame.cardNum;
-            return true;
+            return { action: 'refresh' };
           }
           //#2 If the selected one, de-select
           if ((selectedCard == cards[i]) && (selectedCardNum == frame.cardNum)) {
             console.log('de-selecting card ' + selectedCard);
             selectedCard = null;
             selectedCardNum = null;
-            return true;
+            return { action: 'refresh' };
           }
           //#3 Change the selected card to this one
           selectedCard = cards[i];
           selectedCardNum = frame.cardNum;
           console.log('selecting card ' + cards[i] + ', pos in hand ' + frame.cardNum);
-          return true;
+            return { action: 'refresh' };
         }
       }
     }
@@ -109,7 +123,7 @@ function GameBoard() {
           //This is a click on the card - check a valid move for this card
           if (gameLogic.isValidMove(selectedCard, frame.row, frame.col)) {
             console.log('playing card ' + selectedCard);
-            return { card: selectedCard, row: frame.row, col: frame.col };
+            return { action: 'playRound', card: selectedCard, row: frame.row, col: frame.col };
           }
         }
       }
@@ -127,7 +141,7 @@ function GameBoard() {
             //This is a click on the card - check a valid move for this card
             if (gameLogic.isValidMove(selectedCard, frame.row, frame.col)) {
               console.log('playing card ' + selectedCard);
-              return { card: selectedCard, row: frame.row, col: frame.col };
+              return { action: 'playRound', card: selectedCard, row: frame.row, col: frame.col };
             }
           }
         }
@@ -139,7 +153,7 @@ function GameBoard() {
     console.log('de-selecting card ' + selectedCard);
     selectedCard = null;
     selectedCardNum = null;
-    return true;
+    return { action: 'refresh' };
   };
 
   ////////////////////////////////////////
@@ -371,6 +385,12 @@ function GameBoard() {
     const fontSize = Math.floor(playArea.width * 0.08);
     textFont(font, fontSize);
     text(str, playArea.x, playArea.y, playArea.width, playArea.boardTop - playArea.y);
+  }
+
+  function drawCloseButton() {
+    //Close control - cancels whole game
+    closeButton = new CloseButton(playArea.x + playArea.width * 0.965, playArea.y + playArea.width * (1 - 0.965), 255);
+    closeButton.draw();
   }
 
   //setup player colours - from gameState.players color values

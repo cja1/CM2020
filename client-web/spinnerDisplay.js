@@ -34,7 +34,7 @@ function SpinnerDisplay() {
 
     //Background
     fill(0);
-    const size = playArea.width * 0.3;
+    const size = playArea.width * 0.25;
     const x = playArea.x + playArea.width / 2 - size / 2;
     var y = playArea.boardTop + (playArea.boardHeight) / 2 - size / 2;
     if (!showCentredSpinner) {
