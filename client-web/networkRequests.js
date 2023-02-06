@@ -24,7 +24,7 @@ function NetworkRequests() {
     if (isPlayer2Bot) {
       postObject['body'] = JSON.stringify({ isPlayer2Bot: true });
     }
-    
+
     httpDo(
       GAMES_END_POINT,
       postObject,
@@ -106,9 +106,9 @@ function NetworkRequests() {
   };
 
   //Wait for game nextPlayer change
-  this.waitForPlayerChange = function(currentPlayer, successFunction, failFunction) {
-    //Repeatedly poll game endpoint waiting for nextPlayer to change from currentPlayer
-    setTimeout(getPlayerRepeat, POLL_INTERVAL * 1000, this, currentPlayer, successFunction, failFunction);
+  this.waitForPlayerChange = function(opponentPlayer, successFunction, failFunction) {
+    //Repeatedly poll game endpoint waiting for nextPlayer to change from opponentPlayer
+    setTimeout(getPlayerRepeat, POLL_INTERVAL * 1000, this, opponentPlayer, successFunction, failFunction);
   };
 
   this.deleteGame = function(successFunction, failFunction) {
@@ -141,6 +141,10 @@ function NetworkRequests() {
 
   //repeatedly call get game state until status changes.
   function getStatusRepeat(thisRef, currentStatus, successFunction, failFunction) {
+    if (!this.haveGameCode()) {
+      //not in game - has been cancelled out of loop
+      successFunction(null);
+    }
     thisRef.getStatus(
       function(state) {
         //If status changed, call success function else re-call this function
@@ -158,19 +162,19 @@ function NetworkRequests() {
   }
 
   //repeatedly call get game state until nextPlayer
-  function getPlayerRepeat(thisRef, currentPlayer, successFunction, failFunction) {
-    console.log('in getPlayerRepeat', currentPlayer);
+  function getPlayerRepeat(thisRef, opponentPlayer, successFunction, failFunction) {
+    console.log('in getPlayerRepeat', opponentPlayer);
     thisRef.getStatus(
       function(state) {
         //If nextPlayer changed, call success function else re-call this function
         //Note: can also be no player as game just won
-        if ((state.status == 'ended') || (state.nextPlayer != currentPlayer)) {
+        if ((state.status == 'ended') || (state.nextPlayer != opponentPlayer)) {
           console.log('changed state');
           successFunction(state);
           return;
         }
         //Call again
-        setTimeout(getPlayerRepeat, POLL_INTERVAL * 1000, thisRef, currentPlayer, successFunction, failFunction);
+        setTimeout(getPlayerRepeat, POLL_INTERVAL * 1000, thisRef, opponentPlayer, successFunction, failFunction);
       },
       function(err) {
         failFunction(err);

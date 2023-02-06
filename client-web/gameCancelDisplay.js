@@ -38,7 +38,7 @@ function GameCancelDisplay() {
     const fontSize = Math.floor(playArea.width * 0.06);
     textFont(font, fontSize);
     fill(255);
-    text(this.title, playArea.x, playArea.y, playArea.width, playArea.height * 2 / 3);
+    text(this.title, playArea.x + playArea.width * 0.05, playArea.y, playArea.width - playArea.width * 0.1, playArea.height * 2 / 3);
 
     //Buttons
     frameButton.x = playArea.x + playArea.width * 0.15;

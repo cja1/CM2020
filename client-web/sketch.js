@@ -38,6 +38,8 @@ function preload() {
 function setup() {
   createCanvas(windowWidth, windowHeight);
   setupPlayArea();
+
+  //Ibitial get status call to see if a game is already running
   gameLogic.getStatus();
 }
 
@@ -112,12 +114,12 @@ function touchStarted() {
       //Action depends on state
       if (gameLogic.isEnded()) {
         //Back to game initiation
+        //HERE: logic here
       }
       else {
-        //HERE: the code for spinner on refresh if in game not working...
-        
         //Delete the game
         gameLogic.deleteGame();
+        //HERE: not re-showing the game code text entry box?
       }
     }
     didChangeState = true;
