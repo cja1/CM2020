@@ -8,6 +8,7 @@ function SpinnerDisplay() {
 
   //Show the spinner
   this.showSpinner = function() {
+    if (isShowingSpinner) { return; }
     isShowingSpinner = true;
     haveShownBackground = false;
   };

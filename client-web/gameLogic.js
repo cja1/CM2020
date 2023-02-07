@@ -11,6 +11,8 @@ function GameLogic() {
 
   //Hold the game state from the server
   var gameState = {};
+  //Also keep track of whether playing against a bot - for 'waiting for player' message
+  var isPlayer2Bot = false;
 
   this.isInGame = function() {
     return (overallState == overallStates[1]);
@@ -20,11 +22,16 @@ function GameLogic() {
     return (overallState == overallStates[1]) && (gameState.status == 'waitingForPlayers');
   };
 
-  this.createGame = function(isPlayer2Bot) {
+  this.isAgainstBot = function() {
+    return isPlayer2Bot;
+  };
+
+  this.createGame = function(isAgainstBot) {
+    isPlayer2Bot = isAgainstBot
     spinnerDisplay.showSpinner();
     networkRequests.createGame(
       isPlayer2Bot,
-      function() { gameLogic.getStatus(); },  //Get and update state and wait for other player to join
+      function() { gameLogic.getStatus(); },
       function(err) {
         //add error
         gameLogic.resetGame();
@@ -183,6 +190,7 @@ function GameLogic() {
     networkRequests.clearGameCode();  //reset called when game ended (ie no call to deleteGame)
     overallState = overallStates[0];
     gameState = {};
+    isPlayer2Bot = false;
     //clear game cancel, hide spinner (if showing)
     gameCancelDisplay.clearDisplayed();
     spinnerDisplay.hideSpinner();

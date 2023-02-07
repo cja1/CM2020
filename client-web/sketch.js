@@ -39,14 +39,12 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
   setupPlayArea();
 
-  //Ibitial get status call to see if a game is already running
+  //Initial get status call to see if a game is already running
   gameLogic.getStatus();
 }
 
 function draw() {
 
-  //HERE: havent got game reset logic quite right: gameInitiationDisplay is not re-showing the text box.
-  
   if (didChangeState) {
     //Always setup game board - overall background
     gameBoard.setup();
@@ -54,7 +52,6 @@ function draw() {
     if (gameCancelDisplay.isDisplayed()) {
       //Show continue / cancel overlay
       gameCancelDisplay.draw();
-      gameInitiationDisplay.clear();  //removes text box
     }
     else if (!gameLogic.isInGame() || gameLogic.isWaitingForPlayers()) {
       //If not in game, or in game and waiting for players, show game initiation screen
@@ -62,9 +59,8 @@ function draw() {
       spinnerDisplay.reset(); //to force re-draw of spinner background
     }
     else {
-      //Clear gameInitiationDisplay (text input)
-      gameInitiationDisplay.clear();
       //Show game board
+      gameInitiationDisplay.hideCodeInput();
       gameBoard.draw();
     }
     didChangeState = false;
@@ -77,6 +73,7 @@ function draw() {
 
   //Keep spinner spinning
   if (spinnerDisplay.isSpinning() && !gameCancelDisplay.isDisplayed()) {
+    gameInitiationDisplay.hideCodeInput();
     spinnerDisplay.draw();
   }
 }
@@ -133,6 +130,7 @@ function touchStarted() {
     if (errorDisplay.hitCheck()) {
       didChangeState = true;
     }
+    //No other clicks permitted so return
     return;
   }
 
@@ -144,6 +142,7 @@ function touchStarted() {
       gameCancelDisplay.setDisplayed();
       didChangeState = true;
     }
+    //No other clicks permitted so return
     return;
   }
 
@@ -160,7 +159,7 @@ function touchStarted() {
       gameLogic.joinGame(ret.code);
     }
     else if (ret.action == 'toggleBot') {
-      gameInitiationDisplay.toggleBot();
+      //Just need to re-draw the board as toggle happened in gameInitiationDisplay
     }
     //re-draw the board
     didChangeState = true;
@@ -178,6 +177,7 @@ function touchStarted() {
   else if (ret.action == 'playRound') {
     //Object returned has card, row and col set: play this card
     gameLogic.playRound(ret.card, ret.row, ret.col);
+    //HERE: update game board title to say 'waiting for player1234'?
   }
   else if (ret.action == 'cancel') {
     //game cancel - check

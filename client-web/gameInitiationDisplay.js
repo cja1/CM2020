@@ -9,7 +9,7 @@ function GameInitiationDisplay() {
   var buttonCreate = null;
   var buttonJoin = null;
 
-  var codeInput = createInput();
+  var codeInput = null;
 
   //Draw the game initiation view
   this.draw = function() {
@@ -28,7 +28,10 @@ function GameInitiationDisplay() {
     const fontSize = Math.floor(playArea.width * 0.08);
     textFont(font, fontSize);
     fill(255);
-    const title = isWaitingForPlayers ? 'Waiting for player' : 'Welcome to Sequence';
+    var title = 'Welcome to Sequence';
+    if (isWaitingForPlayers) {
+      title = gameLogic.isAgainstBot() ? 'Waiting for bot' : 'Waiting for player';
+    }
     text(title, playArea.x, playArea.boardTop, playArea.width, playArea.height / 5);
 
     //Buttons
@@ -53,13 +56,16 @@ function GameInitiationDisplay() {
     frameToggleBot.h = playArea.height * 0.05;
     drawToggle('Play against bot', frameToggleBot, toggleBotIsOn);
 
+    if (codeInput == null) {
+      createCodeInput();
+    }
     if (isWaitingForPlayers) {
-      //Hide text input for code
-      this.clear();
+      //Hide the input
+      codeInput.hide();
     }
     else {
-      //Draw text input for code
-      createCodeInput();
+      //Show the input
+      codeInput.show();
     }
 
     //If have game code, show it
@@ -69,10 +75,10 @@ function GameInitiationDisplay() {
     pop();
   };
 
-  this.clear = function() {
-    //Hide the input
-    codeInput.style('display', 'none');
-  };
+  this.hideCodeInput = function() {
+    if (codeInput == null) { return; }
+    codeInput.hide();
+  }
 
   this.hitCheck = function() {
     if (buttonCreate.hitCheck()) {
@@ -94,17 +100,14 @@ function GameInitiationDisplay() {
     }
 
     if (isButtonHit(frameToggleBot)) {
-      return({ action: 'toggleBot' });      
+      //toggle state
+      toggleBotIsOn = !toggleBotIsOn;
+      return ({ action: 'toggleBot' });      
     }
 
     //Not a valid hit
     return false;
   };
-
-  //toggle bot switch state
-  this.toggleBot = function() {
-    toggleBotIsOn = !toggleBotIsOn;
-  }
 
   //local functions
   function drawToggle(str, frame, isOn) {
@@ -141,6 +144,7 @@ function GameInitiationDisplay() {
 
   //Create input area for code
   function createCodeInput() {
+    codeInput = createInput();
     codeInput.position(frameButtonJoin.x + frameButtonJoin.w * 1.2, frameButtonJoin.y + frameButtonJoin.h * 0.15);
     codeInput.style('border', 'none');
     codeInput.style('box-shadow', 'none');
@@ -151,7 +155,6 @@ function GameInitiationDisplay() {
     const size = Math.floor(frameButtonJoin.w * 0.7);    
     codeInput.style('text-align', 'center');
     codeInput.size(size);
-    codeInput.style('display', 'normal');
   }
 
   //Show game code - to left of frameButtonCreate
