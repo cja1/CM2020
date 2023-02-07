@@ -8,7 +8,6 @@ function GameInitiationDisplay() {
   var toggleBotIsOn = false;
   var buttonCreate = null;
   var buttonJoin = null;
-
   var codeInput = null;
 
   //Draw the game initiation view

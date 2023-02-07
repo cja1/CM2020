@@ -13,6 +13,8 @@ function GameLogic() {
   var gameState = {};
   //Also keep track of whether playing against a bot - for 'waiting for player' message
   var isPlayer2Bot = false;
+  //Keep flag for waiting for player
+  var isWaitingForOpponentToPlay = false;
 
   this.isInGame = function() {
     return (overallState == overallStates[1]);
@@ -101,9 +103,12 @@ function GameLogic() {
         }
         else if (!gameLogic.isPlayersTurn()) {
           //Wait for player change as originating player starts
+          isWaitingForOpponentToPlay = true;
+
           networkRequests.waitForPlayerChange(
             opponentPlayerNum(),
             function(state) {
+              isWaitingForOpponentToPlay = false;
               spinnerDisplay.hideSpinner();
               if (state == null) {
                 //game deleted - not an error
@@ -139,6 +144,11 @@ function GameLogic() {
     networkRequests.playRound(card, row, col,
       function() {
 
+        isWaitingForOpponentToPlay = true;
+
+        //Call didChangeState here so board title can be updated
+        didChangeState = true;
+
         //successfully played round - reset selected card and wait for player to change
         gameBoard.resetCardSelection();
       
@@ -146,6 +156,7 @@ function GameLogic() {
         networkRequests.waitForPlayerChange(
           opponentPlayerNum(),
           function(state) {
+            isWaitingForOpponentToPlay = false;
             spinnerDisplay.hideSpinner();
             if (state == null) {
               //game deleted - not an error
@@ -179,7 +190,6 @@ function GameLogic() {
         didChangeState = true;
       },
       function(err) {
-        console.log('typeof', typeof this);
         gameLogic.resetGame();
         errorDisplay.addError(err);
     });
@@ -191,6 +201,7 @@ function GameLogic() {
     overallState = overallStates[0];
     gameState = {};
     isPlayer2Bot = false;
+    isWaitingForOpponentToPlay = false;
     //clear game cancel, hide spinner (if showing)
     gameCancelDisplay.clearDisplayed();
     spinnerDisplay.hideSpinner();
@@ -222,17 +233,18 @@ function GameLogic() {
         }
         else {
           if (gameState.winner == opponentPlayerNum()) {
-            const winningPlayer = gameState.players[gameState.winner - 1];
-            str = winningPlayer.name + ' wins!';
+            str = oppoenentPlayerName() + ' wins!';
           }
           else {
             str = 'You win!';
           }
         }
       }
+      else if (isWaitingForOpponentToPlay) {
+        str = oppoenentPlayerName() + '\'s turn';
+      }
       else {
-        //In game - show which player's turn
-        str = gameLogic.isPlayersTurn() ? 'Your turn' : (gameState.players[gameState.nextPlayer - 1].name + '\'s turn');
+        str = 'Your turn';
       }
     }
     return str;
@@ -249,6 +261,10 @@ function GameLogic() {
   this.colPlayer2= function() {
     if (!('players' in gameState) || (gameState.players.length < 2)) { return null; }
     return color('#' + gameState.players[1].color);
+  }
+  this.colPlayerMe= function() {
+    if (gameState.players[0].isMe) { return this.colPlayer1(); }
+    return this.colPlayer2();
   }
 
   //Return true if this player's turn
@@ -320,6 +336,9 @@ function GameLogic() {
   function opponentPlayerNum() {
     if (gameState.players[0].isMe) { return 2; }
     return 1;
+  }
+  function oppoenentPlayerName() {
+    return gameState.players[opponentPlayerNum() - 1].name;
   }
 
 }

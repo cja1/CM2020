@@ -2,10 +2,11 @@
 function NetworkRequests() {
 
   //local consts
-  //API endpoint
+  //API endpoints
   const GAMES_END_POINT = 'https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games';
+  const USERS_END_POINT = 'https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/users';
   //Poll interval in seconds
-  const POLL_INTERVAL = 5;
+  const POLL_INTERVAL = 3;
 
   this.haveGameCode = function() {
     return localStorage.getItem('code') != null;
@@ -145,7 +146,24 @@ function NetworkRequests() {
 
   this.clearGameCode = function() {
     localStorage.removeItem('code');    
-  }
+  };
+
+  this.getUser = function(successFunction, failFunction) {
+    httpDo(
+      USERS_END_POINT,
+      {
+        method: 'GET',
+        headers: { authorization: 'Bearer ' + getDeviceUUID() }
+      },
+      function(res) {
+        successFunction(JSON.parse(res));
+      },
+      function(err) {
+        console.log(err);
+        failFunction('Unable to get player');
+      }
+    );
+  };
 
   ///////////////////
   //local functions
@@ -184,7 +202,6 @@ function NetworkRequests() {
         //If nextPlayer changed, call success function else re-call this function
         //Note: can also be null (game deleted) or no player (game just won)
         if ((state == null) || (state.status == 'ended') || (state.nextPlayer != opponentPlayer)) {
-          console.log('changed state');
           successFunction(state);
           return;
         }

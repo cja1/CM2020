@@ -177,7 +177,6 @@ function touchStarted() {
   else if (ret.action == 'playRound') {
     //Object returned has card, row and col set: play this card
     gameLogic.playRound(ret.card, ret.row, ret.col);
-    //HERE: update game board title to say 'waiting for player1234'?
   }
   else if (ret.action == 'cancel') {
     //game cancel - check

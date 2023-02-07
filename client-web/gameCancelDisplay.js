@@ -20,7 +20,7 @@ function GameCancelDisplay() {
 
   this.clearDisplayed = function() {
     isDisplayed = false;    
-  }
+  };
 
   this.draw = function() {
     if (haveShown) { return; }

@@ -61,6 +61,8 @@ function postGame(event, callback) {
     isPlayer2Bot = true;
   }
 
+  //HERE: get all previous codes then generate a code not in previous codes array
+
   const code = utilities.generateGameCode();
 
   Promise.resolve()

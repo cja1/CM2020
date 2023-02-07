@@ -61,7 +61,6 @@ function GameBoard() {
 
     //Close button
     if (closeButton.hitCheck()) {
-      console.log('close button tapped');
       return { action: 'cancel' };
     }
     if (!gameLogic.isPlayersTurn()) {
@@ -81,14 +80,14 @@ function GameBoard() {
           //clicking on a player card... options
           //#1 If no selected card, select this card
           if (selectedCard == null) {
-            console.log('selecting card ' + cards[i] + ', pos in hand ' + frame.cardNum);
+            //console.log('selecting card ' + cards[i] + ', pos in hand ' + frame.cardNum);
             selectedCard = cards[i];
             selectedCardNum = frame.cardNum;
             return { action: 'refresh' };
           }
           //#2 If the selected one, de-select
           if ((selectedCard == cards[i]) && (selectedCardNum == frame.cardNum)) {
-            console.log('de-selecting card ' + selectedCard);
+            //console.log('de-selecting card ' + selectedCard);
             selectedCard = null;
             selectedCardNum = null;
             return { action: 'refresh' };
@@ -96,15 +95,15 @@ function GameBoard() {
           //#3 Change the selected card to this one
           selectedCard = cards[i];
           selectedCardNum = frame.cardNum;
-          console.log('selecting card ' + cards[i] + ', pos in hand ' + frame.cardNum);
-            return { action: 'refresh' };
+          //console.log('selecting card ' + cards[i] + ', pos in hand ' + frame.cardNum);
+          return { action: 'refresh' };
         }
       }
     }
 
     //This wasn't a click on a player card but a click elsewhere. If no card currently selected, ignore the click
     if (selectedCard == null) {
-      console.log('ignoring');
+      //console.log('ignoring');
       return false;
     }
 
@@ -122,7 +121,7 @@ function GameBoard() {
         if (mouseX > frame.x && mouseX < frame.x + frame.w && mouseY > frame.y && mouseY < frame.y + frame.h) {
           //This is a click on the card - check a valid move for this card
           if (gameLogic.isValidMove(selectedCard, frame.row, frame.col)) {
-            console.log('playing card ' + selectedCard);
+            //console.log('playing card ' + selectedCard);
             return { action: 'playRound', card: selectedCard, row: frame.row, col: frame.col };
           }
         }
@@ -140,7 +139,7 @@ function GameBoard() {
           if (mouseX > frame.x && mouseX < frame.x + frame.w && mouseY > frame.y && mouseY < frame.y + frame.h) {
             //This is a click on the card - check a valid move for this card
             if (gameLogic.isValidMove(selectedCard, frame.row, frame.col)) {
-              console.log('playing card ' + selectedCard);
+              //console.log('playing card ' + selectedCard);
               return { action: 'playRound', card: selectedCard, row: frame.row, col: frame.col };
             }
           }
@@ -150,7 +149,7 @@ function GameBoard() {
     }
 
     //We clicked somewhere else - deselect and return false
-    console.log('de-selecting card ' + selectedCard);
+    //console.log('de-selecting card ' + selectedCard);
     selectedCard = null;
     selectedCardNum = null;
     return { action: 'refresh' };
