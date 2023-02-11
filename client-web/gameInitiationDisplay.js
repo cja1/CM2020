@@ -51,7 +51,7 @@ function GameInitiationDisplay() {
     //Bot toggle
     frameToggleBot.x = playArea.x + playArea.width * 0.1;
     frameToggleBot.y = playArea.boardTop + playArea.height * 0.43;
-    frameToggleBot.w = playArea.width;
+    frameToggleBot.w = playArea.width / 7;
     frameToggleBot.h = playArea.height * 0.05;
     drawToggle('Play against bot', frameToggleBot, toggleBotIsOn);
 
@@ -101,7 +101,7 @@ function GameInitiationDisplay() {
     if (isButtonHit(frameToggleBot)) {
       //toggle state
       toggleBotIsOn = !toggleBotIsOn;
-      return ({ action: 'toggleBot' });      
+      return ({ action: 'toggleBot' });
     }
 
     //Not a valid hit
@@ -110,7 +110,7 @@ function GameInitiationDisplay() {
 
   //local functions
   function drawToggle(str, frame, isOn) {
-    const width = frame.w / 7;
+    const width = frame.w;
     const height = width * 2.5 / 5;
 
     //toggle outline - lozenge
@@ -133,7 +133,7 @@ function GameInitiationDisplay() {
     textAlign(LEFT, CENTER);
     fill(255);
     noStroke();
-    text(str, frame.x + width * 1.2, frame.y - frame.h * 0.1, frame.w, frame.h);
+    text(str, frame.x + width * 1.2, frame.y - frame.h * 0.1, frame.w * 6, frame.h);
   }
 
   //Button hit check

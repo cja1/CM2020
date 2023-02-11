@@ -95,6 +95,14 @@ var principalId;
  *           type: object
  *           description: The winning sequence object, containing the type of win and a length 5 array of winning points on the game board.
  *           $ref: '#/components/schemas/WinningSequence' 
+ *         handsPlayed:
+ *           type: int32
+ *           description: The number of hands played in this game
+ *           example: 65
+ *         duration:
+ *           type: int32
+ *           description: The duration of the game in seconds
+ *           example: 610
  * 
  * /games/{code}:
  *   get:
@@ -134,7 +142,8 @@ function getGame(event, callback) {
 
   //Get the game: with this code
   models.Game.findOne({
-    attributes: ['id', 'status', 'cardsP1', 'cardsP2', 'nextPlayer', 'winner', 'winningSequence', 'boardState', 'Player1Id', 'Player2Id'],
+    attributes: ['id', 'status', 'cardsP1', 'cardsP2', 'nextPlayer', 'winner', 'winningSequence', 'boardState',
+      'Player1Id', 'Player2Id', 'handsPlayed', 'createdAt', 'updatedAt'],
     include: [
       { model: models.User, as: 'Player1', required: true, attributes: ['id', 'name', 'color'] },
       { model: models.User, as: 'Player2', required: false, attributes: ['id', 'name', 'color'] }
@@ -154,9 +163,12 @@ function getGame(event, callback) {
     }
 
     //Add items to gameState that are always present regardless of status
+    const duration = (game.updatedAt.getTime() - game.createdAt.getTime()) / 1000;
     var gameState = {
       status: game.status,  //'waitingForPlayers', 'active' or 'ended'
-      players: players
+      players: players,
+      handsPlayed: game.handsPlayed,
+      duration: duration
     }
 
     //Test if this requestor is one of the players. If not, only return if game is 'waitingForPlayers'

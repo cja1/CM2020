@@ -396,7 +396,8 @@ System.out.println(response.toString());
           1
         ]
       ]
-    }
+    },
+    "duration": 610
   }
 ]
 ```
@@ -422,6 +423,7 @@ Status Code **200**
 |» winningSequence|[WinningSequence](#schemawinningsequence)|false|none|A game winning sequence|
 |»» type|string|false|none|The type of winning sequence. One of 'row', 'col', 'diagDR' and 'diagDL' for row, column, diagonal down and to the right and diagonal down and to the left.|
 |»» sequence|[[BoardPosition](#schemaboardposition)]|false|none|The winning sequence as a length 5 array of points on the game board.|
+|» duration|int32|false|none|The duration of the game in seconds|
 
 #### Enumerated Values
 
@@ -973,7 +975,9 @@ System.out.println(response.toString());
         1
       ]
     ]
-  }
+  },
+  "handsPlayed": 65,
+  "duration": 610
 }
 ```
 
@@ -1853,7 +1857,9 @@ A game winning sequence
         1
       ]
     ]
-  }
+  },
+  "handsPlayed": 65,
+  "duration": 610
 }
 
 ```
@@ -1871,6 +1877,8 @@ Game state information. Always returns 'status' and 'players'. Other properties 
 |boardState|[[BoardRow](#schemaboardrow)]|false|none|The current state of the game board - same for each player - sent as a 10 row array of BoardRow objects.|
 |winner|int32|false|none|The number of the player who won. 1 = Player 1, 2 = Player 2. Note that 0 indicates that no player won - ie game was cancelled before a Player won the game.|
 |winningSequence|[WinningSequence](#schemawinningsequence)|false|none|The winning sequence object, containing the type of win and a length 5 array of winning points on the game board.|
+|handsPlayed|int32|false|none|The number of hands played in this game|
+|duration|int32|false|none|The duration of the game in seconds|
 
 #### Enumerated Values
 
@@ -1923,7 +1931,8 @@ User information
         1
       ]
     ]
-  }
+  },
+  "duration": 610
 }
 
 ```
@@ -1937,6 +1946,7 @@ The data set for the outcome of a game
 |handsPlayed|int32|true|none|The number of hands played in this game. Maximum is 104 as a maximum of 52 x 2 cards played.|
 |winner|int32|true|none|The winner of the game. Either 0 represening no winner (a draw), 1 representing Player 1 or 2 represening Player 2|
 |winningSequence|[WinningSequence](#schemawinningsequence)|false|none|The winning sequence object, containing the type of win and a length 5 array of winning points on the game board.|
+|duration|int32|false|none|The duration of the game in seconds|
 
 #### Enumerated Values
 

@@ -61,12 +61,18 @@ function postGame(event, callback) {
     isPlayer2Bot = true;
   }
 
-  //HERE: get all previous codes then generate a code not in previous codes array
+  var code;
 
-  const code = utilities.generateGameCode();
+  //Get all current game codes to ensure no clash
+  models.Game.findAll({
+    attributes: ['code'],
+  })
+  .then(function(games) {
+    //Generate a unique game code
+    var codes = [];
+    games.forEach((game) => codes.push(game.code));
+    code = utilities.generateGameCode(codes);
 
-  Promise.resolve()
-  .then(function() {
     //If not bot creating this game, set status to 'ended' and winner to 0 for any game this player is in - either as player 1 or player 2
     if (isBot1 || isBot2) {
       return Promise.resolve();

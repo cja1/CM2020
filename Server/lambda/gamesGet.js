@@ -28,6 +28,10 @@ var principalId;
  *           type: object
  *           description: The winning sequence object, containing the type of win and a length 5 array of winning points on the game board.
  *           $ref: '#/components/schemas/WinningSequence' 
+ *         duration:
+ *           type: int32
+ *           description: The duration of the game in seconds
+ *           example: 610
  * 
  * /games:
  *   get:
@@ -57,7 +61,7 @@ var principalId;
 function getGames(event, callback) {
 
   models.Game.findAll({
-    attributes: ['handsPlayed', 'winner', 'winningSequence'],
+    attributes: ['handsPlayed', 'winner', 'winningSequence', 'createdAt', 'updatedAt'],
     where: { status: 'ended', winner: { [Op.gt]: 0 } },
     limit: 100,
     order: [['updatedAt', 'DESC']]
@@ -65,7 +69,8 @@ function getGames(event, callback) {
   .then(function(games) {
     var outcomes = [];
     games.forEach((game) => {
-      var obj = { handsPlayed: game.handsPlayed, winner: game.winner };
+      const duration = (game.updatedAt.getTime() - game.createdAt.getTime()) / 1000;
+      var obj = { handsPlayed: game.handsPlayed, winner: game.winner, duration: duration };
       if (game.winningSequence != null) {
         obj['winningSequence'] = JSON.parse(game.winningSequence);
       }

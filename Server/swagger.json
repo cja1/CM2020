@@ -166,6 +166,16 @@
             "type": "object",
             "description": "The winning sequence object, containing the type of win and a length 5 array of winning points on the game board.",
             "$ref": "#/components/schemas/WinningSequence"
+          },
+          "handsPlayed": {
+            "type": "int32",
+            "description": "The number of hands played in this game",
+            "example": 65
+          },
+          "duration": {
+            "type": "int32",
+            "description": "The duration of the game in seconds",
+            "example": 610
           }
         }
       },
@@ -216,6 +226,11 @@
             "type": "object",
             "description": "The winning sequence object, containing the type of win and a length 5 array of winning points on the game board.",
             "$ref": "#/components/schemas/WinningSequence"
+          },
+          "duration": {
+            "type": "int32",
+            "description": "The duration of the game in seconds",
+            "example": 610
           }
         }
       }

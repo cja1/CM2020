@@ -60,12 +60,19 @@ function parseJson(str) {
   }
 }
 
-function generateGameCode() {
-  //Generate a random code
+//previousCodes is an array of all previously used game codes
+function generateGameCode(previousCodes) {
   const GAME_CODE_CHARSET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  return Array(GAME_CODE_LENGTH).fill(GAME_CODE_CHARSET).map(function(x) {
-    return x[Math.floor(Math.random() * x.length)];
-  }).join('');
+  var code;
+
+  do {
+    //Generate a random code
+    code = Array(GAME_CODE_LENGTH).fill(GAME_CODE_CHARSET).map(function(x) {
+      return x[Math.floor(Math.random() * x.length)];
+    }).join('');
+  } while(previousCodes.includes(code));
+
+  return code;
 }
 
 function isValidGameCode(str) {
