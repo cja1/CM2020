@@ -7,7 +7,7 @@ const GAMES_END_POINT = 'https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/
 //************************************
 // BOT USER
 //************************************
-var playRound = function(deviceUUID, code) {
+var playRound = function(deviceUUID, code, version) {
   return new Promise(function(resolve, reject) {
     console.log(deviceUUID, code);
 
@@ -37,7 +37,7 @@ var playRound = function(deviceUUID, code) {
           return;
         }
         //Get move (card, moveRow, moveCol)
-        const move = getMove(response.data);
+        const move = getMove(response.data, version);
         if (move === false) {
           reject('No moves available');
           return;
@@ -66,15 +66,19 @@ var playRound = function(deviceUUID, code) {
 //************************************
 // HELPERS
 //************************************
-function getMove(game) {
+function getMove(game, version) {
   const moves = utilities.getMovesForGame(game);
   //If no moves return false
   if (moves.length == 0) {
     return false;
   }
-  //Return a random move
-  const num = Math.floor(Math.random() * moves.length);
-  return moves[num];
+  //Logic for selecting move depends on bot version
+  switch(version) {
+  case 1:
+    //Bot v1: random move from all possible moves
+    const num = Math.floor(Math.random() * moves.length);
+    return moves[num];
+  }
 }
 
 exports.handler = (event, context, callback) => {
@@ -87,8 +91,9 @@ exports.handler = (event, context, callback) => {
     if ('body' in record) {
       const json = utilities.parseJson(record.body);
       console.log(json);
-      if (('deviceUUID' in json) && validator.isUUID(json.deviceUUID) && ('code' in json) && utilities.isValidGameCode(json.code.toUpperCase())) {
-        promises.push(playRound(json.deviceUUID, json.code.toUpperCase()));
+      if (('deviceUUID' in json) && validator.isUUID(json.deviceUUID)
+        && ('code' in json) && utilities.isValidGameCode(json.code.toUpperCase()) && ('version' in json)) {
+        promises.push(playRound(json.deviceUUID, json.code.toUpperCase(), json.version));
       }
     }
   });

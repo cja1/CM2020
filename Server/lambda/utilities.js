@@ -123,9 +123,12 @@ function randomPlayerColor() {
   }).join('');
 }
 
-function createSQSEntryForBot(code, deviceUUID) {
-  var body = { code: code, deviceUUID: deviceUUID };
+//Create SQS entry to request bot play. version optional - defaults to 1
+function createSQSEntryForBot(code, deviceUUID, version) {
+  version = version || 1; //defaults to bot v1
+  var body = { code: code, deviceUUID: deviceUUID, version: version };
   console.log('About to send SQS', body);
+
   var sqs = new AWS.SQS({apiVersion: '2012-11-05'});
   const params = {
     MessageBody: JSON.stringify(body),
