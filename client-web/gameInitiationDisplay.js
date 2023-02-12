@@ -153,6 +153,7 @@ function GameInitiationDisplay() {
     codeInput.style('font-size', fontSize + 'pt');
     const size = Math.floor(frameButtonJoin.w * 0.7);    
     codeInput.style('text-align', 'center');
+    codeInput.attribute('aria-label', 'Enter the game code');
     codeInput.size(size);
   }
 

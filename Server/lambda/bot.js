@@ -102,7 +102,7 @@ function getMove(game, version) {
     return getMoveClosestToCorner(moves);
 
   case 4: case 5: case 6:
-    //v4 and v5 - play close to existing piece on table if available
+    //Pplay close to existing piece on table if available
     moves = utilities.getMovesForGame(game);
     const playerLabel = game.players[0].isMe ? 'p1' : 'p2';
     const boardPositions = getBoardPositionsForPlayer(game.boardState, playerLabel);
@@ -111,11 +111,11 @@ function getMove(game, version) {
       return getMoveClosestToExisting(boardPositions, moves);
     }
     else if (version == 5) {
-      //Bot v5: if there is a play next to an existing piece do this, then any moves 2 pieces away, else closest to corner
+      //Bot v5: if there is a play next to an existing piece or 2 pieces away do this, else closest to corner
       return getMoveClosestToExistingV2(boardPositions, moves);
     }
     else {
-      //Bot v6: play closest for all proximity ranges (1-9(
+      //Bot v6: play closest for all proximity ranges (1-9)
       return getMoveClosestToExistingV3(boardPositions, moves);
     }
 
