@@ -17,7 +17,7 @@
 3. Game outcome visualisation tool, showing the outcomes of the last 100 completed games with the 4 different ways to win (row, column, diagonal downwards line, diagonal upwards line): [https://compsci.s3.eu-west-1.amazonaws.com/CM2020/client-demo/visualisation.html](https://compsci.s3.eu-west-1.amazonaws.com/CM2020/client-demo/visualisation.html)
 
 
-**client-web**: A P5-based web client as an MVP version of the game. NOT IMPLEMENTED YET! Access it here: [https://compsci.s3.eu-west-1.amazonaws.com/CM2020/client-web/index.html](https://compsci.s3.eu-west-1.amazonaws.com/CM2020/client-web/index.html)
+**client-web**: A P5-based web client as an MVP version of the game. NOT IMPLEMENTED YET!
 
 Notes:
 * API uptime monitoring and status page available here: [https://sequence.betteruptime.com](https://sequence.betteruptime.com).

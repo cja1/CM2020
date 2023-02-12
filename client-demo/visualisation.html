@@ -106,6 +106,7 @@ function draw() {
     count = 0;
     counts = { 'row': 0, 'col': 0, 'diagDR': 0, 'diagUR': 0 };
     handsPlayedDistrib = { 0: 0, 10: 0, 20: 0, 30: 0, 40: 0, 50: 0, 60: 0, 70: 0, 80: 0, 90: 0, 100: 0 };
+    playerWinCount = [0, 0];
     haveStartedDrawingLines = true;
   }
 
@@ -119,11 +120,13 @@ function draw() {
       pop();
     }
     console.log(handsPlayedDistrib);
+    console.log(playerWinCount);
+    count += 1;
     return;
   } 
 
-  //Stop if no more games or a max of 5,000 games
-  if (count > games.length || count == 5000) { return; }
+  //Stop if no more games
+  if (count >= games.length) { return; }
 
   const game = games[count];
 
@@ -131,6 +134,7 @@ function draw() {
   const handsPlayed = game.handsPlayed;
   const handsPlayedRounded = Math.floor(handsPlayed / 10.0) * 10; //round down to nearest 10;
   handsPlayedDistrib[handsPlayedRounded] += 1;
+  playerWinCount[game.winner - 1] += 1;
 
   if (!('winningSequence' in game)) { return; }
   const type = game.winningSequence.type;

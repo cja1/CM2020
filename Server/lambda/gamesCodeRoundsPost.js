@@ -201,10 +201,12 @@ function postRound(event, callback) {
     //see if bot plays next
     //If yes, create an SQS entry to signal the bot to play a round in this game
     if ((game.nextPlayer == 1) && game.isPlayer1Bot && (game.status != 'ended')) {
-      return utilities.createSQSEntryForBot(code, utilities.BOT1_DEVICE_UUID);
+      //Make bot 1 use version 6 bot
+      return utilities.createSQSEntryForBot(code, utilities.BOT1_DEVICE_UUID, 6);
     }
     if ((game.nextPlayer == 2) && game.isPlayer2Bot && (game.status != 'ended')) {
-      return utilities.createSQSEntryForBot(code, utilities.BOT2_DEVICE_UUID);
+      //Bot 2 use v5 bot
+      return utilities.createSQSEntryForBot(code, utilities.BOT2_DEVICE_UUID, 5);
     }
     //Neither player a bot
     return Promise.resolve();

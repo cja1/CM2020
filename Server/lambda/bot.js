@@ -67,18 +67,154 @@ var playRound = function(deviceUUID, code, version) {
 // HELPERS
 //************************************
 function getMove(game, version) {
-  const moves = utilities.getMovesForGame(game);
-  //If no moves return false
-  if (moves.length == 0) {
-    return false;
-  }
   //Logic for selecting move depends on bot version
+  console.log('getMove, version: ' + version);
+  var moves;
+
   switch(version) {
   case 1:
     //Bot v1: random move from all possible moves
+    moves = utilities.getMovesForGame(game);
+    if (moves.length == 0) { return false; }
     const num = Math.floor(Math.random() * moves.length);
     return moves[num];
+
+  case 2:
+    //Bot v2: get move that is closest to a corner
+    moves = utilities.getMovesForGame(game);
+    if (moves.length == 0) { return false; }
+    return getMoveClosestToCorner(moves);
+
+  case 3:
+    //Bot v3: get move that is closest to a corner; hold on to Jacks until after 35 hands played
+    const ignoreJacks = game.handsPlayed < 35;
+    moves = utilities.getMovesForGame(game, ignoreJacks);
+    if (moves.length == 0) {
+      if (ignoreJacks) {
+        //see if any moves if don't ignore jacks
+        moves = utilities.getMovesForGame(game, false);
+        if (moves.length == 0) { return false; }
+      }
+      else {
+        return false;
+      }
+    }
+    return getMoveClosestToCorner(moves);
+
+  case 4: case 5: case 6:
+    //v4 and v5 - play close to existing piece on table if available
+    moves = utilities.getMovesForGame(game);
+    const playerLabel = game.players[0].isMe ? 'p1' : 'p2';
+    const boardPositions = getBoardPositionsForPlayer(game.boardState, playerLabel);
+    if (version == 4) {
+      //Bot v4: if there is a play next to an existing piece do this, else closest to corner
+      return getMoveClosestToExisting(boardPositions, moves);
+    }
+    else if (version == 5) {
+      //Bot v5: if there is a play next to an existing piece do this, then any moves 2 pieces away, else closest to corner
+      return getMoveClosestToExistingV2(boardPositions, moves);
+    }
+    else {
+      //Bot v6: play closest for all proximity ranges (1-9(
+      return getMoveClosestToExistingV3(boardPositions, moves);
+    }
+
   }
+}
+
+//Get all the positons on the board held by this player
+function getBoardPositionsForPlayer(boardState, playerLabel) {
+  var out = [];
+  for (var r = 0; r < 10; r++) {
+    for (var c = 0; c < 10; c++) {
+      if (boardState[r][c] == playerLabel) {
+        out.push({ row: r, col: c });
+      }
+    }
+  }
+  return out;
+}
+
+function getMoveClosestToExisting(boardPositions, moves) {
+  //see if any moves are next to an existing piece of this player
+  for (var i = 0; i < moves.length; i++) {
+    const row = moves[i].moveRow;
+    const col = moves[i].moveCol;
+    for (var j = 0; j < boardPositions.length; j++) {
+      if ((Math.abs(row - boardPositions[j]['row']) <= 1) && (Math.abs(col - boardPositions[j]['col']) <= 1)) {
+        return moves[i];
+      }
+    }
+  }
+  //No moves close - return move closest to corner
+  return getMoveClosestToCorner(moves);
+}
+
+function getMoveClosestToExistingV2(boardPositions, moves) {
+  //see if any moves are next to an existing piece of this player
+  for (var i = 0; i < moves.length; i++) {
+    const row = moves[i].moveRow;
+    const col = moves[i].moveCol;
+    for (var j = 0; j < boardPositions.length; j++) {
+      if ((Math.abs(row - boardPositions[j]['row']) <= 1) && (Math.abs(col - boardPositions[j]['col']) <= 1)) {
+        return moves[i];
+      }
+    }
+  }
+  //now see if any moves 2 away from an existing piece of this player
+  for (var i = 0; i < moves.length; i++) {
+    const row = moves[i].moveRow;
+    const col = moves[i].moveCol;
+    for (var j = 0; j < boardPositions.length; j++) {
+      if ((Math.abs(row - boardPositions[j]['row']) <= 2) && (Math.abs(col - boardPositions[j]['col']) <= 2)) {
+        return moves[i];
+      }
+    }
+  }
+  //No moves close - return move closest to corner
+  return getMoveClosestToCorner(moves);
+}
+
+function getMoveClosestToExistingV3(boardPositions, moves) {
+  for (var proximity = 1; proximity < 10; proximity ++) {
+    for (var i = 0; i < moves.length; i++) {
+      const row = moves[i].moveRow;
+      const col = moves[i].moveCol;
+      for (var j = 0; j < boardPositions.length; j++) {
+        if ((Math.abs(row - boardPositions[j]['row']) <= proximity) && (Math.abs(col - boardPositions[j]['col']) <= proximity)) {
+          return moves[i];
+        }
+      }
+    }
+  }
+  //No moves close - return move to closest corner (should only happen on first play)
+  return getMoveClosestToCorner(moves);
+}
+
+function getMoveClosestToCorner(moves) {
+  //add distance to closest corner for each move
+  for (var i = 0; i < moves.length; i++) {
+    moves[i]['distance'] = distanceToCorner(moves[i]);
+  }
+
+  //sort array by distance
+  moves.sort((a, b) => a.distance - b.distance);
+  console.log(moves);
+
+  //return the top-most move - the closest to the corner
+  const move = moves[0];
+  console.log('playing move', move);
+  delete move.distance;
+  return move;
+}
+
+function distanceToCorner(move) {
+  //move like { card: '3|S', moveRow: 9, moveCol: 7 }
+  const distTL = Math.sqrt(Math.pow(move.moveRow, 2) + Math.pow(move.moveCol, 2));
+  const distTR = Math.sqrt(Math.pow(move.moveRow, 2) + Math.pow(9 - move.moveCol, 2));
+  const distBL = Math.sqrt(Math.pow(9 - move.moveRow, 2) + Math.pow(move.moveCol, 2));
+  const distBR = Math.sqrt(Math.pow(9 - move.moveRow, 2) + Math.pow(9 - move.moveCol, 2));
+  return Math.min(distTL, distTR, distBL, distBR);
 }
 
 exports.handler = (event, context, callback) => {

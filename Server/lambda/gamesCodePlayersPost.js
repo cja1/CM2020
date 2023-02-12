@@ -88,7 +88,7 @@ function postPlayer(event, callback) {
     //If isPlayer1Bot then the second player has just joined and we want to trigger player 1 bot to play a round
     if (game.isPlayer1Bot) {
       console.log('Creating SQS entry to trigger Bot 1 play a round');
-      return utilities.createSQSEntryForBot(code, utilities.BOT1_DEVICE_UUID);
+      return utilities.createSQSEntryForBot(code, utilities.BOT1_DEVICE_UUID, 6);
     }
     return Promise.resolve();
   })

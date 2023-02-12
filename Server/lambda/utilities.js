@@ -178,18 +178,24 @@ function playOptionsForCard(card, asJSON) {
   return out;
 }
 
-function getMovesForGame(game) {
+function getMovesForGame(game, ignoreJacks) {
+  ignoreJacks = ignoreJacks || false; //defaults to don't ignore Jacks
   var moves = [];
 
   //Create possible moves for all cards
   game.cards.forEach((card) => {
-    const movesForCard = getMovesForCard(card, game.boardState, game.nextPlayer);
-    moves = moves.concat(movesForCard);
+    if (!ignoreJacks || !isCardJack(card)) {
+      const movesForCard = getMovesForCard(card, game.boardState, game.nextPlayer);
+      moves = moves.concat(movesForCard);
+    }
   });
   console.log(moves);
   return moves;
 }
 
+function isCardJack(card) {
+  return card.split('|')[0] == 'J';
+}
 
 function getMovesForCard(card, boardState, nextPlayer) {
   const cardParts = card.split('|');

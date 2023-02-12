@@ -63,14 +63,14 @@ function getGames(event, callback) {
   models.Game.findAll({
     attributes: ['handsPlayed', 'winner', 'winningSequence', 'createdAt', 'updatedAt'],
     where: { status: 'ended', winner: { [Op.gt]: 0 } },
-    limit: 100,
+    limit: 1000,
     order: [['updatedAt', 'DESC']]
   })
   .then(function(games) {
     var outcomes = [];
     games.forEach((game) => {
       const duration = (game.updatedAt.getTime() - game.createdAt.getTime()) / 1000;
-      var obj = { handsPlayed: game.handsPlayed, winner: game.winner, duration: duration };
+      var obj = { handsPlayed: game.handsPlayed, winner: game.winner, duration: duration, createdAt: game.createdAt };
       if (game.winningSequence != null) {
         obj['winningSequence'] = JSON.parse(game.winningSequence);
       }
