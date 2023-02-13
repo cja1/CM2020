@@ -205,8 +205,8 @@ function postRound(event, callback) {
       return utilities.createSQSEntryForBot(code, utilities.BOT1_DEVICE_UUID, 6);
     }
     if ((game.nextPlayer == 2) && game.isPlayer2Bot && (game.status != 'ended')) {
-      //Bot 2 use v5 bot
-      return utilities.createSQSEntryForBot(code, utilities.BOT2_DEVICE_UUID, 5);
+      //Bot 2 use v6 bot
+      return utilities.createSQSEntryForBot(code, utilities.BOT2_DEVICE_UUID, 6);
     }
     //Neither player a bot
     return Promise.resolve();
