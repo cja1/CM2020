@@ -63,7 +63,7 @@ function getGames(event, callback) {
   models.Game.findAll({
     attributes: ['handsPlayed', 'winner', 'winningSequence', 'createdAt', 'updatedAt'],
     where: { status: 'ended', winner: { [Op.gt]: 0 } },
-    limit: 1000,
+    limit: 100,
     order: [['updatedAt', 'DESC']]
   })
   .then(function(games) {
