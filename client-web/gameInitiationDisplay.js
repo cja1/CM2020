@@ -5,9 +5,11 @@ function GameInitiationDisplay() {
   const frameButtonCreate = { x: 0, y: 0, w: 0, h: 0 };
   const frameButtonJoin = { x: 0, y: 0, w: 0, h: 0 };
   const frameToggleBot = { x: 0, y: 0, w: 0, h: 0 };
+  const frameButtonInstructions = { x: 0, y: 0, w: 0, h: 0 };
   var toggleBotIsOn = false;
   var buttonCreate = null;
   var buttonJoin = null;
+  var buttonInstructions = null;
   var codeInput = null;
 
   //Draw the game initiation view
@@ -38,15 +40,24 @@ function GameInitiationDisplay() {
     frameButtonCreate.y = playArea.boardTop + playArea.height * 0.3;
     frameButtonCreate.w = playArea.width * 0.4;
     frameButtonCreate.h = playArea.height * 0.1;
-    buttonCreate = new Button('Create Game', frameButtonCreate.x, frameButtonCreate.y, frameButtonCreate.w, frameButtonCreate.h, 255);
+    buttonCreate = new Button('Create Game', frameButtonCreate.x, frameButtonCreate.y, frameButtonCreate.w,
+			frameButtonCreate.h, 255, 1.0);
     buttonCreate.draw(); 
 
     frameButtonJoin.x = playArea.x + playArea.width * 0.1;
     frameButtonJoin.y = playArea.boardTop + playArea.height * 0.55;
     frameButtonJoin.w = playArea.width * 0.4;
     frameButtonJoin.h = playArea.height * 0.1;
-    buttonJoin = new Button('Join Game', frameButtonJoin.x, frameButtonJoin.y, frameButtonJoin.w, frameButtonJoin.h, 255);
+    buttonJoin = new Button('Join Game', frameButtonJoin.x, frameButtonJoin.y, frameButtonJoin.w,
+			frameButtonJoin.h, 255, 1.0);
     buttonJoin.draw(); 
+
+		frameButtonInstructions.x = playArea.x + playArea.width * 0.65;
+    frameButtonInstructions.y = playArea.y + playArea.height * 0.03;
+    frameButtonInstructions.w = playArea.width * 0.3;
+    frameButtonInstructions.h = playArea.height * 0.05;
+    buttonInstructions = new Button('Instructions', frameButtonInstructions.x, frameButtonInstructions.y, frameButtonInstructions.w, frameButtonInstructions.h, 255, 0.7);
+    buttonInstructions.draw(); 
 
     //Bot toggle
     frameToggleBot.x = playArea.x + playArea.width * 0.1;
@@ -71,6 +82,7 @@ function GameInitiationDisplay() {
     if (networkRequests.haveGameCode()) {
       showGameCode(networkRequests.gameCode());
     }
+		
     pop();
   };
 
@@ -102,6 +114,10 @@ function GameInitiationDisplay() {
       //toggle state
       toggleBotIsOn = !toggleBotIsOn;
       return ({ action: 'toggleBot' });
+    }
+
+		if (buttonInstructions.hitCheck()) {
+      return({ action: 'instructions' });
     }
 
     //Not a valid hit

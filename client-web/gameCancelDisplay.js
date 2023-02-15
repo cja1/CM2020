@@ -52,6 +52,8 @@ function GameCancelDisplay() {
     buttonContinue = new Button('Yes', frameButton.x, frameButton.y, frameButton.w, frameButton.h, 'red');
     buttonContinue.draw();
 
+		pop();
+
     haveShown = true;
   }
 

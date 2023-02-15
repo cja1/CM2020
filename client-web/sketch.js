@@ -4,8 +4,10 @@ var gameBoard = null;
 var gameLogic = null;
 //global for the game initiation (create / join) display
 var gameInitiationDisplay = null;
-//global gameCancelDisplay
+//global game cancel display
 var gameCancelDisplay = null;
+//global game instructions display
+var gameInstructionsDisplay = null;
 
 //global for all network requests
 var networkRequests = null;
@@ -27,7 +29,8 @@ function preload() {
   gameLogic = new GameLogic();
   gameInitiationDisplay = new GameInitiationDisplay();
   gameCancelDisplay = new GameCancelDisplay();
-
+	gameInstructionsDisplay = new GameInstructionsDisplay();
+	
   networkRequests = new NetworkRequests();
   errorDisplay = new ErrorDisplay();
   spinnerDisplay = new SpinnerDisplay();
@@ -49,7 +52,12 @@ function draw() {
     //Always setup game board - overall background
     gameBoard.setup();
 
-    if (gameCancelDisplay.isDisplayed()) {
+		if (gameInstructionsDisplay.isDisplayed()) {
+			//Show instructions
+			gameInstructionsDisplay.draw();
+      gameInitiationDisplay.hideCodeInput();
+		}
+    else if (gameCancelDisplay.isDisplayed()) {
       //Show continue / cancel overlay
       gameCancelDisplay.draw();
     }
@@ -103,7 +111,17 @@ function setupPlayArea() {
 
 //use touch started rather than mouse click - seems to be more reliable on touch devices
 function touchStarted() {
-
+	
+	//If game instructions show this
+	if (gameInstructionsDisplay.isDisplayed()) {
+    const ret = gameInstructionsDisplay.hitCheck();
+    if (ret === false) { return; }  //keep displaying
+		//hide
+		gameInstructionsDisplay.clearDisplayed();
+		didChangeState = true;
+		return;
+	}
+	
   //If continue / cancel show this
   if (gameCancelDisplay.isDisplayed()) {
     const ret = gameCancelDisplay.hitCheck();
@@ -150,13 +168,17 @@ function touchStarted() {
   if (!gameLogic.isInGame()) {
     const ret = gameInitiationDisplay.hitCheck();
     if (ret === false) { return; }
-
+		
     if (ret.action == 'create') {
       gameLogic.createGame(ret.isPlayer2Bot);
     }
     else if (ret.action == 'join') {
       //join
       gameLogic.joinGame(ret.code);
+    }
+    else if (ret.action == 'instructions') {
+			//Show instructions
+			gameInstructionsDisplay.setDisplayed();
     }
     else if (ret.action == 'toggleBot') {
       //Just need to re-draw the board as toggle happened in gameInitiationDisplay
