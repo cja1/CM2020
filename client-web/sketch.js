@@ -109,10 +109,10 @@ function setupPlayArea() {
   playArea.playerCardsTop = playArea.boardTop + playArea.boardHeight;
 }
 
-//use touch started rather than mouse click - seems to be more reliable on touch devices
-function touchStarted() {
+//use mousePressed() rather than touch () - touch doesn't work on Firefox browser
+function mousePressed() {
 	
-	//If game instructions show this
+	//If game instructions see if click on close
 	if (gameInstructionsDisplay.isDisplayed()) {
     const ret = gameInstructionsDisplay.hitCheck();
     if (ret === false) { return; }  //keep displaying
@@ -122,7 +122,7 @@ function touchStarted() {
 		return;
 	}
 	
-  //If continue / cancel show this
+  //If continue / cancel see if click on continue or OK
   if (gameCancelDisplay.isDisplayed()) {
     const ret = gameCancelDisplay.hitCheck();
     if (ret === false) { return; }  //keep displaying

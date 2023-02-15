@@ -1,3 +1,6 @@
 #!/bin/bash
 
 aws s3 --region eu-west-1 sync "/Users/callen/Documents/Personal/CompSci/CM2020 ASP/CM2020/client-web" s3://compsci/CM2020/client-web --exclude 'deploy' --exclude '.DS_Store' --exclude '*/.DS_Store' --acl public-read
+
+#Add cache invalidation now using the CDN
+aws cloudfront create-invalidation --distribution-id E29YMBOLAJ18ZQ --paths "/*"

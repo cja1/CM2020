@@ -316,7 +316,7 @@ function GameBoard() {
     image(img, inset + w / 2, inset + h / 2, imgW, imgH);  
   }
 
-  //Draw all the cards in the players hand - below the game board
+  //Draw all the cards in the players hand - below the game board. Also add 'Your cards' text
   function drawPlayersCards() {
 
     var cards = gameLogic.cards();  //returns empty array if game not playing
@@ -331,11 +331,11 @@ function GameBoard() {
     //Force gap to always be based on 7 cards - so effectively left-aligns cards
     const numCardsForGap = 7;
     const gapX = (playArea.width - padding * 2 - numCardsForGap * cardWidth) / (numCardsForGap - 1);
-    const gapY = (playArea.playerCardsHeight - cardHeight) / 2.0;
+    const gapY = (playArea.playerCardsHeight - cardHeight) / 1.8;
 
     textAlign(LEFT, CENTER);
     //Dynamic font size
-    const fontSize = Math.floor(cardWidth * 0.55);
+    var fontSize = Math.floor(cardWidth * 0.55);
     textFont(font, fontSize);
 
     //Add cards
@@ -354,6 +354,12 @@ function GameBoard() {
       }
       playerCardFrames[cards[i]].push({ x: x, y: y, w: cardWidth, h: cardHeight, cardNum: i });
     }
+		
+		//add player cards label
+    fill(255);
+    var fontSize = Math.floor(cardWidth * 0.45);
+    textFont(font, fontSize);
+		text('Your cards', playArea.x + padding, playArea.playerCardsTop + playArea.playerCardsHeight * 0.15);
   }
 
   //draw the player card at the current position
