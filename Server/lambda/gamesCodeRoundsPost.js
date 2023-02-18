@@ -157,6 +157,10 @@ function postRound(event, callback) {
 
     //Also auto-remove any un-playable cards (ie no position open on board for this card)
     cardsPlayer.forEach((cardPlayer) => {
+      //Ignore One-eyed jacks - as 1-eyed remove opponent's card and opponent may not have played yet
+      if (utilities.isOneEyedJack(cardPlayer)) {
+        return;
+      }
       const moves = utilities.getMovesForCard(cardPlayer, ret.boardStateArray, game.nextPlayer);
       if (moves.length == 0) {
         //remove this card as no moves

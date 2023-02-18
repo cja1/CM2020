@@ -197,10 +197,15 @@ function isCardJack(card) {
   return card.split('|')[0] == 'J';
 }
 
+function isOneEyedJack(card) {
+  //One-eyed or not (Spades and Hearts are one-eyed)
+  return isCardJack(card) && ['S', 'H'].includes(card.split('|')[1]);
+}
+
 function getMovesForCard(card, boardState, nextPlayer) {
-  const cardParts = card.split('|');
-  var moves = []
-  if (cardParts[0] != 'J') {
+  var moves = [];
+
+  if (!isCardJack(card)) {
     //Not a Jack
     const playOptions = playOptionsForCard(card, true); //true to get array of arrays back as opposed to array of strings
     playOptions.forEach((playOption) => {
@@ -213,8 +218,7 @@ function getMovesForCard(card, boardState, nextPlayer) {
   }
 
   //A Jack. See if one-eyed or not (Spades and Hearts are one-eyed)
-  const isOneEyed = (['S', 'H'].includes(cardParts[1]));
-  if (isOneEyed) {
+  if (isOneEyedJack(card)) {
     //One-eyed Jacks are 'anti-wild'
     //Rule: "remove one marker chip from the game board belonging to your opponent"
     //So valid moves are all places where boardState is nextPlayer
@@ -268,5 +272,6 @@ module.exports = {
   boardGameWithCards: boardGameWithCards,
   playOptionsForCard: playOptionsForCard,
   getMovesForGame: getMovesForGame,
-  getMovesForCard: getMovesForCard
+  getMovesForCard: getMovesForCard,
+  isOneEyedJack: isOneEyedJack
 };

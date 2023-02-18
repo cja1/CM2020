@@ -78,8 +78,8 @@ function GameInitiationDisplay() {
       codeInput.show();
     }
 
-    //If have game code, show it
-    if (networkRequests.haveGameCode()) {
+    //If have game code and not playing again bot, show game code and instruction text
+    if (networkRequests.haveGameCode() && !gameLogic.isAgainstBot()) {
       showGameCode(networkRequests.gameCode());
     }
 		

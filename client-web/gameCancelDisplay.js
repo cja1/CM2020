@@ -45,11 +45,11 @@ function GameCancelDisplay() {
     frameButton.y = playArea.boardTop + playArea.height * 0.3;
     frameButton.w = playArea.width * 0.3;
     frameButton.h = playArea.height * 0.1;
-    buttonCancel = new Button('Cancel', frameButton.x, frameButton.y, frameButton.w, frameButton.h, 255);
+    buttonCancel = new Button('Cancel', frameButton.x, frameButton.y, frameButton.w, frameButton.h, 255, 1.0);
     buttonCancel.draw(); 
 
     frameButton.x += frameButton.w + playArea.width * 0.1;
-    buttonContinue = new Button('Yes', frameButton.x, frameButton.y, frameButton.w, frameButton.h, 'red');
+    buttonContinue = new Button('Yes', frameButton.x, frameButton.y, frameButton.w, frameButton.h, 'red', 1.0);
     buttonContinue.draw();
 
 		pop();
