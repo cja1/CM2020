@@ -78,7 +78,7 @@ function NetworkRequests() {
         body: JSON.stringify({ card: card, moveRow: row, moveCol: col }),
       },
       function(res) {
-        successFunction();
+        successFunction(JSON.parse(res));
       },
       function(err) {
         failFunction('Unable to play round');

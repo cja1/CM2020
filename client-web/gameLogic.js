@@ -142,11 +142,11 @@ function GameLogic() {
     spinnerDisplay.showSpinner();
 
     networkRequests.playRound(card, row, col,
-      function() {
-
+      function(state) {
+        gameState = state;
         isWaitingForOpponentToPlay = true;
 
-        //Call didChangeState here so board title can be updated
+        //Call didChangeState here so board can be updated
         didChangeState = true;
 
         //successfully played round - reset selected card and wait for player to change
