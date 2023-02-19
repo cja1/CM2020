@@ -611,6 +611,7 @@ bearerAuth
 # You can also use wget
 curl -X POST https://yhw44o1elj.execute-api.eu-west-1.amazonaws.com/prod/games/{code}/rounds \
   -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
   -H 'Authorization: Bearer {access-token}'
 
 ```
@@ -623,6 +624,7 @@ const inputBody = '{
 }';
 const headers = {
   'Content-Type':'application/json',
+  'Accept':'application/json',
   'Authorization':'Bearer {access-token}'
 };
 
@@ -647,6 +649,7 @@ require 'vendor/autoload.php';
 
 $headers = array(
     'Content-Type' => 'application/json',
+    'Accept' => 'application/json',
     'Authorization' => 'Bearer {access-token}',
 );
 
@@ -676,6 +679,7 @@ try {
 import requests
 headers = {
   'Content-Type': 'application/json',
+  'Accept': 'application/json',
   'Authorization': 'Bearer {access-token}'
 }
 
@@ -691,6 +695,7 @@ require 'json'
 
 headers = {
   'Content-Type' => 'application/json',
+  'Accept' => 'application/json',
   'Authorization' => 'Bearer {access-token}'
 }
 
@@ -714,6 +719,7 @@ func main() {
 
     headers := map[string][]string{
         "Content-Type": []string{"application/json"},
+        "Accept": []string{"application/json"},
         "Authorization": []string{"Bearer {access-token}"},
     }
 
@@ -768,11 +774,60 @@ System.out.println(response.toString());
 |moveRow|body|int32|true|The row number where the player wants to play this card, from 0 to 9|
 |moveCol|body|int32|true|The column number where the player wants to play this card, from 0 to 9|
 
+> Example responses
+
+> 200 Response
+
+```json
+{
+  "status": "active",
+  "players": [
+    {
+      "name": "Player12345",
+      "color": "ff0000",
+      "isMe": true
+    }
+  ],
+  "cards": [
+    "A|S",
+    "10|H",
+    "2|C"
+  ],
+  "nextPlayer": 1,
+  "boardState": [
+    [
+      "",
+      "",
+      "",
+      "p1",
+      "p2",
+      "",
+      "p1",
+      "",
+      "",
+      ""
+    ]
+  ],
+  "winner": 2,
+  "winningSequence": {
+    "type": "row",
+    "sequence": [
+      [
+        0,
+        1
+      ]
+    ]
+  },
+  "handsPlayed": 65,
+  "duration": 610
+}
+```
+
 <h3 id="play-a-round-responses">Responses</h3>
 
 |Status|Meaning|Description|Schema|
 |---|---|---|---|
-|204|[No Content](https://tools.ietf.org/html/rfc7231#section-6.3.5)|successful operation|None|
+|200|[OK](https://tools.ietf.org/html/rfc7231#section-6.3.1)|successful operation|[GameState](#schemagamestate)|
 |401|[Unauthorized](https://tools.ietf.org/html/rfc7235#section-3.1)|unauthorised - invalid API token|None|
 |404|[Not Found](https://tools.ietf.org/html/rfc7231#section-6.5.4)|game not found|None|
 |422|[Unprocessable Entity](https://tools.ietf.org/html/rfc2518#section-10.3)|unprocessable|None|

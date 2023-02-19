@@ -419,8 +419,15 @@
           }
         ],
         "responses": {
-          "204": {
-            "description": "successful operation"
+          "200": {
+            "description": "successful operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GameState"
+                }
+              }
+            }
           },
           "401": {
             "description": "unauthorised - invalid API token"

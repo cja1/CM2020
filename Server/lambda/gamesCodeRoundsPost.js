@@ -45,8 +45,12 @@ var principalId;
  *     security:
  *       - bearerAuth: []
  *     responses:
- *       204:
+ *       200:
  *         description: successful operation
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/GameState'
  *       401:
  *         description: unauthorised - invalid API token
  *       404:
@@ -65,6 +69,9 @@ function postRound(event, callback) {
 
   //validate the body
   const jsonBody = utilities.parseJson(event.body);  //deals with nulls and JSON parse errors
+
+  //hold game state
+  var gameState;
 
   //Check expected body parameters are set
   const params = ['card', 'moveRow', 'moveCol'];
@@ -107,7 +114,12 @@ function postRound(event, callback) {
 
   //Get the game: with this code, where active or waitingForPlayers, and with the requestor as Player1 or Player2
   models.Game.findOne({
-    attributes: ['id', 'status', 'cardsP1', 'cardsP2', 'cards', 'cardPos', 'nextPlayer', 'winner', 'boardState', 'Player1Id', 'Player2Id', 'isPlayer1Bot', 'isPlayer2Bot', 'handsPlayed'],
+    attributes: ['id', 'status', 'cardsP1', 'cardsP2', 'cards', 'cardPos', 'nextPlayer', 'winner', 'boardState', 'Player1Id', 'Player2Id', 'isPlayer1Bot', 'isPlayer2Bot',
+      'handsPlayed', 'createdAt', 'updatedAt'],
+    include: [
+      { model: models.User, as: 'Player1', required: true, attributes: ['id', 'name', 'color'] },
+      { model: models.User, as: 'Player2', required: false, attributes: ['id', 'name', 'color'] }
+    ],
     where: { [Op.and]: [
       { code: code.toUpperCase() },
       { status: { [Op.in]: ['waitingForPlayers', 'active'] }},
@@ -177,8 +189,22 @@ function postRound(event, callback) {
       cardPos += 1;
     }
 
+    //Add items to gameState that are always present regardless of status
+    gameState = {
+      status: 'active',
+      players: [
+        { name: game.Player1.name, color: game.Player1.color, isMe: game.Player1.id == principalId },
+        { name: game.Player2.name, color: game.Player2.color, isMe: game.Player2.id == principalId }
+      ],
+      boardState: utilities.createBoardStateArray(boardState),
+      handsPlayed: game.handsPlayed + 1,
+      duration: (game.updatedAt.getTime() - game.createdAt.getTime()) / 1000
+    }
+
     //If no cards in player's hand OR played more than MAX_HANDS_PLAYED hands (should never happen) then stop
     if ((cardsPlayer.length == 0)|| (game.handsPlayed > utilities.MAX_HANDS_PLAYED)) {
+      gameState.status = 'ended';
+      gameState['winner'] = 0;
       return game.update({ status: 'ended', winner: 0, boardState: boardState });   
     }
 
@@ -186,10 +212,16 @@ function postRound(event, callback) {
     const winState = getWinState(boardStateArray);
     if (winState.didWin) {
       //Update the winner, game state and winningSequence
+      gameState.status = 'ended';
+      gameState['winner'] = game.nextPlayer;
+      gameState['winningSequence'] = winState.winningSequence;
       return game.update({ status: 'ended', winner: game.nextPlayer, boardState: boardState, winningSequence: JSON.stringify(winState.winningSequence) });
     }
     else {
       //Update the nextPlayer, boardState, cardPos in the pack and handsPlayed
+      gameState['nextPlayer'] = (game.nextPlayer == 1) ? 2 : 1;
+      gameState['cards'] = cardsPlayer;
+
       var updateObj = { nextPlayer: (game.nextPlayer == 1) ? 2 : 1, boardState: boardState, cardPos: cardPos, handsPlayed: game.handsPlayed + 1 };
       //... and update the relevant player's cards too
       if (game.nextPlayer == 1) {
@@ -217,7 +249,7 @@ function postRound(event, callback) {
   })
   .then(function() {  
     console.log('Successfully played round', principalId, card, moveRow, moveCol);
-    return callback(null, utilities.okEmptyResponse(event));
+    return callback(null, utilities.okResponse(event, gameState));
   }, function(err) {
     console.log(err);
     return callback(null, utilities.errorResponse(event, err));

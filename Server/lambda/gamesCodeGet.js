@@ -180,17 +180,16 @@ function getGame(event, callback) {
         //return cards for this player. If empty, blank
         const cards = (game.Player1Id == principalId) ? game.cardsP1 : game.cardsP2;
         gameState['cards'] = (cards == '') ? [] : cards.split(',');
-
-        //Send the board state as an array of arrays, 10x10
-        gameState['boardState'] = utilities.createBoardStateArray(game.boardState);      
       }
 
       //If ended, also add winner and winning sequence
       if (game.status == 'ended') {
         gameState['winner'] = game.winner;
         gameState['winningSequence'] = JSON.parse(game.winningSequence);
-        gameState['boardState'] = utilities.createBoardStateArray(game.boardState);      
       }
+      
+      //Send the board state as an array of arrays, 10x10
+      gameState['boardState'] = utilities.createBoardStateArray(game.boardState);      
     }
     else if (game.status != 'waitingForPlayers') {
       //This is an error: a player not in the game requesting info about the game that has started or ended
