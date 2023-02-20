@@ -32,6 +32,10 @@ var principalId;
  *           type: int32
  *           description: The duration of the game in seconds
  *           example: 610
+ *         createdAt:
+ *           type: string
+ *           description: The date and time this game was created as an ISO format string like YYYY-MM-DDTHH:MM:SSZ
+ *           example: 2023-02-20T04:24:40.000Z
  * 
  * /games:
  *   get:
@@ -59,21 +63,28 @@ var principalId;
 // GET GAMES
 //************************************
 function getGames(event, callback) {
+  const NUM_GAMES_TO_RETURN = 100;
 
   models.Game.findAll({
     attributes: ['handsPlayed', 'winner', 'winningSequence', 'createdAt', 'updatedAt'],
-    where: { status: 'ended', winner: { [Op.gt]: 0 } },
-    limit: 100,
+    where: { status: 'ended', winner: { [Op.gt]: 0 } }, //, Player1Id: 1, Player2Id: 2
+    limit: NUM_GAMES_TO_RETURN,
     order: [['updatedAt', 'DESC']]
   })
   .then(function(games) {
     var outcomes = [];
     games.forEach((game) => {
-      const duration = (game.updatedAt.getTime() - game.createdAt.getTime()) / 1000;
-      var obj = { handsPlayed: game.handsPlayed, winner: game.winner, duration: duration, createdAt: game.createdAt };
+      var obj = {
+        handsPlayed: game.handsPlayed,
+        winner: game.winner,
+        duration: (game.updatedAt.getTime() - game.createdAt.getTime()) / 1000,
+        createdAt: game.createdAt
+      };
+
       if (game.winningSequence != null) {
         obj['winningSequence'] = JSON.parse(game.winningSequence);
       }
+
       outcomes.push(obj);
     });
     return callback(null, utilities.okResponse(event, outcomes));

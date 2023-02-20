@@ -93,8 +93,8 @@ function postBot(event, callback) {
     }
 
     //Create SQS entry to request the bot play a round for this game code with this user's deviceUUID
-    //v6 bot
-    return utilities.createSQSEntryForBot(code, deviceUUID, 6);
+    //v7 bot
+    return utilities.createSQSEntryForBot(code, deviceUUID, 7);
   })
   .then(function() {  
     console.log('Successfully requested bot play a round', principalId, code, deviceUUID);

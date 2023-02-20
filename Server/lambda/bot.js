@@ -69,7 +69,7 @@ var playRound = function(deviceUUID, code, version) {
 function getMove(game, version) {
   //Logic for selecting move depends on bot version
   console.log('getMove, version: ' + version);
-  var moves;
+  var moves, playerLabel, boardPositions;
 
   switch(version) {
   case 1:
@@ -102,10 +102,10 @@ function getMove(game, version) {
     return getMoveClosestToCorner(moves);
 
   case 4: case 5: case 6:
-    //Pplay close to existing piece on table if available
+    //Play close to existing piece on table if available
     moves = utilities.getMovesForGame(game);
-    const playerLabel = game.players[0].isMe ? 'p1' : 'p2';
-    const boardPositions = getBoardPositionsForPlayer(game.boardState, playerLabel);
+    playerLabel = game.players[0].isMe ? 'p1' : 'p2';
+    boardPositions = getBoardPositionsForPlayer(game.boardState, playerLabel);
     if (version == 4) {
       //Bot v4: if there is a play next to an existing piece do this, else closest to corner
       return getMoveClosestToExisting(boardPositions, moves);
@@ -119,7 +119,167 @@ function getMove(game, version) {
       return getMoveClosestToExistingV3(boardPositions, moves);
     }
 
+  case 7:
+    //Get all moves 1 away from existing then, if any, pick the one that will create the longest sequence
+    moves = utilities.getMovesForGame(game);
+    playerLabel = game.players[0].isMe ? 'p1' : 'p2';
+    boardPositions = getBoardPositionsForPlayer(game.boardState, playerLabel);
+    const movesOneAwayFromExisting = getAllMovesClosestToExisting(boardPositions, moves);
+    if (movesOneAwayFromExisting.length > 0) {
+      return bestMove(movesOneAwayFromExisting, game.boardState, playerLabel);
+    }
+    else {
+      //Just return like bot v6
+      return getMoveClosestToExistingV3(boardPositions, moves);      
+    }
   }
+}
+
+function bestMove(movesOneAwayFromExisting, boardState, playerLabel) {
+  //See if any move results in a win
+  for (var i = 0; i < movesOneAwayFromExisting.length; i++) {
+    //start with a copy of the boardState
+    var boardStateCopy = JSON.parse(JSON.stringify(boardState));
+    //Set this move to be this player's piece...
+    boardStateCopy[movesOneAwayFromExisting[i].moveRow][movesOneAwayFromExisting[i].moveCol] = playerLabel;
+    //... and see if this results in a win
+    var winState = utilities.getWinState(boardStateCopy);
+    if (winState.didWin) {
+      return movesOneAwayFromExisting[i];
+    }
+  }
+  //No move resulted in a win
+  //Start by calculating the longest sequence on the board before any move
+  var currentLongestSequence = longestSequence(boardState, playerLabel);
+  var moveForMax = null;
+  //Add each move to board position and re-calculate longest sequence. Keep hold of the longest
+  for (var i = 0; i < movesOneAwayFromExisting.length; i++) {
+    //start with a copy of the boardState
+    var boardStateCopy = JSON.parse(JSON.stringify(boardState));
+    //Set this move to be this player's piece...
+    boardStateCopy[movesOneAwayFromExisting[i].moveRow][movesOneAwayFromExisting[i].moveCol] = playerLabel;
+    var thisLongestSequence = longestSequence(boardStateCopy, playerLabel);
+    if (thisLongestSequence > currentLongestSequence) {
+      currentLongestSequence = thisLongestSequence;
+      moveForMax = movesOneAwayFromExisting[i];
+    }
+  }
+
+  if (moveForMax != null) {
+    return moveForMax;
+  }
+  //return random move as none better than existing
+  return movesOneAwayFromExisting[Math.floor(Math.random() * movesOneAwayFromExisting.length)];
+}
+
+function longestSequence(boardState, playerLabel) {
+  return Math.max(
+    longestRow(boardState, playerLabel),
+    longestCol(boardState, playerLabel),
+    longestDiagDR(boardState, playerLabel),
+    longestDiagUR(boardState, playerLabel)
+  );
+}
+
+function longestRow(boardState, playerLabel) {
+  var maxLen = 0;
+  var currentLen = 0;
+
+  for (var r = 0; r < 10; r++) {
+    for (var c = 0; c < 10; c++) {
+      if (boardState[r][c] == playerLabel) {
+        currentLen += 1;
+        maxLen = Math.max(maxLen, currentLen);
+      }
+      else {
+        currentLen = 0;
+      }
+    }
+    //end of row - reset
+    currentLen = 0;
+  }
+  return maxLen;
+}
+
+function longestCol(boardState, playerLabel) {
+  var maxLen = 0;
+  var currentLen = 0;
+
+  for (var c = 0; c < 10; c++) {
+    for (var r = 0; r < 10; r++) {
+      if (boardState[r][c] == playerLabel) {
+        currentLen += 1;
+        maxLen = Math.max(maxLen, currentLen);
+      }
+      else {
+        currentLen = 0;
+      }
+    }
+    //end of col - reset
+    currentLen = 0;
+  }
+  return maxLen;
+}
+
+function longestDiagDR(boardState, playerLabel) {
+  var maxLen = 0;
+  var currentLen = 0;
+
+  //Start at col -5, up to col = 5
+  for (var cStart = -5; cStart < 5; cStart++) {
+    //reset r - start at -1 so first increment gets us to 0
+    var r = -1;
+    var c = cStart;
+    while (r < 9) {
+      //we always increment r even if c is < 0
+      r += 1;
+      c += 1;
+      //if c < 0 or > 9 then invalid cell - go to next
+      if (c < 0 || c > 9) { continue; }
+
+      //console.log(r, c, boardState[r][c], playerLabel);
+      if (boardState[r][c] == playerLabel) {
+        currentLen += 1;
+        maxLen = Math.max(maxLen, currentLen);
+      }
+      else {
+        currentLen = 0;
+      }
+    }
+    //end of diagonal - reset
+    currentLen = 0;
+  }
+  return maxLen;
+}
+
+function longestDiagUR(boardState, playerLabel) {
+  var maxLen = 0;
+  var currentLen = 0;
+
+  //Start at col -5, up to col = 5
+  for (var cStart = -5; cStart < 5; cStart++) {
+    //reset r - start at 10 so first decrement gets us to 9
+    var r = 10;
+    var c = cStart;
+    while (r > 0) {
+      //we always decrement r even if c is < 0
+      r -= 1;
+      c += 1;
+      //if c < 0 or > 9 then invalid cell - go to next
+      if (c < 0 || c > 9) { continue; }
+
+      if (boardState[r][c] == playerLabel) {
+        currentLen += 1;
+        maxLen = Math.max(maxLen, currentLen);
+      }
+      else {
+        currentLen = 0;
+      }
+    }
+    //end of diagonal - reset
+    currentLen = 0;
+  }
+  return maxLen;
 }
 
 //Get all the positons on the board held by this player
@@ -133,6 +293,21 @@ function getBoardPositionsForPlayer(boardState, playerLabel) {
     }
   }
   return out;
+}
+
+function getAllMovesClosestToExisting(boardPositions, moves) {
+  var movesOneAwayFromExisting = [];
+  //get all moves that are next to an existing piece of this player
+  for (var i = 0; i < moves.length; i++) {
+    const row = moves[i].moveRow;
+    const col = moves[i].moveCol;
+    for (var j = 0; j < boardPositions.length; j++) {
+      if ((Math.abs(row - boardPositions[j]['row']) <= 1) && (Math.abs(col - boardPositions[j]['col']) <= 1)) {
+        movesOneAwayFromExisting.push(moves[i]);
+      }
+    }
+  }
+  return movesOneAwayFromExisting;
 }
 
 function getMoveClosestToExisting(boardPositions, moves) {
@@ -199,11 +374,9 @@ function getMoveClosestToCorner(moves) {
 
   //sort array by distance
   moves.sort((a, b) => a.distance - b.distance);
-  console.log(moves);
 
   //return the top-most move - the closest to the corner
   const move = moves[0];
-  console.log('playing move', move);
   delete move.distance;
   return move;
 }

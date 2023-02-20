@@ -397,7 +397,8 @@ System.out.println(response.toString());
         ]
       ]
     },
-    "duration": 610
+    "duration": 610,
+    "createdAt": "2023-02-20T04:24:40.000Z"
   }
 ]
 ```
@@ -424,6 +425,7 @@ Status Code **200**
 |»» type|string|false|none|The type of winning sequence. One of 'row', 'col', 'diagDR' and 'diagDL' for row, column, diagonal down and to the right and diagonal down and to the left.|
 |»» sequence|[[BoardPosition](#schemaboardposition)]|false|none|The winning sequence as a length 5 array of points on the game board.|
 |» duration|int32|false|none|The duration of the game in seconds|
+|» createdAt|string|false|none|The date and time this game was created as an ISO format string like YYYY-MM-DDTHH:MM:SSZ|
 
 #### Enumerated Values
 
@@ -1987,7 +1989,8 @@ User information
       ]
     ]
   },
-  "duration": 610
+  "duration": 610,
+  "createdAt": "2023-02-20T04:24:40.000Z"
 }
 
 ```
@@ -2002,6 +2005,7 @@ The data set for the outcome of a game
 |winner|int32|true|none|The winner of the game. Either 0 represening no winner (a draw), 1 representing Player 1 or 2 represening Player 2|
 |winningSequence|[WinningSequence](#schemawinningsequence)|false|none|The winning sequence object, containing the type of win and a length 5 array of winning points on the game board.|
 |duration|int32|false|none|The duration of the game in seconds|
+|createdAt|string|false|none|The date and time this game was created as an ISO format string like YYYY-MM-DDTHH:MM:SSZ|
 
 #### Enumerated Values
 

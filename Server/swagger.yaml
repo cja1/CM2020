@@ -235,6 +235,12 @@ components:
           type: int32
           description: The duration of the game in seconds
           example: 610
+        createdAt:
+          type: string
+          description: >-
+            The date and time this game was created as an ISO format string like
+            YYYY-MM-DDTHH:MM:SSZ
+          example: '2023-02-20T04:24:40.000Z'
 paths:
   /games:
     post:
