@@ -1,0 +1,214 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@300;400;700&display=swap');
+
+* {
+    padding: 0;
+    margin: 0;
+}
+
+body {
+    font-family: 'Roboto Condensed',
+        sans-serif;
+    margin: 10px 0;
+    background-color: whitesmoke;
+}
+
+.seq {
+    padding: 10px 0;
+    text-align: center;
+}
+
+.seq h2 {
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 10px;
+    text-align: center;
+    margin: auto;
+    padding-bottom: 20px;
+    font-size: 20px;
+}
+
+.button {
+    display: flex;
+    justify-content: center;
+}
+
+.btn-custom {
+    border: 3px solid #000;
+    padding: 8px 10px;
+    background: #fff;
+    text-transform: uppercase;
+    margin: 0 5px;
+    font-size: 13px;
+}
+
+.form {
+    border: 3px solid #000;
+    padding: 20px 10px;
+}
+
+.tutorial {
+    background: #000;
+    color: #fff;
+    padding: 5px 30px;
+    margin: 10px auto;
+    font-size: 16px;
+    text-transform: uppercase;
+    border-radius: 30px;
+    display: block;
+    margin-top: 30px;
+    border: none;
+}
+
+a {
+    text-decoration: none;
+}
+
+.card-board {
+    padding: 20px 0;
+}
+
+.cards {
+    display: flex;
+    justify-content: center;
+}
+
+.cards img {
+    width: 6%;
+    margin: 3px;
+}
+
+.board {
+    box-shadow: 0px 0px 10px 0px #d1d1d1a6;
+    padding: 20px;
+    background-color: white;
+}
+
+.roomid {
+    text-transform: uppercase;
+    font-size: 16px;
+}
+
+.roomid span {
+    font-weight: bold;
+    font-size: 20px;
+}
+
+.team p {
+    text-transform: uppercase;
+    font-size: 15px;
+}
+
+.team p span {
+    font-weight: bold;
+    font-size: 17px;
+}
+
+.playing {
+    margin-top: 30px;
+}
+
+.playing p {
+    text-transform: uppercase;
+    font-size: 15px;
+}
+
+.playing p span {
+    font-weight: bold;
+    font-size: 17px;
+}
+
+.deck p {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 0;
+    text-transform: uppercase;
+}
+
+.deck-cards {
+    display: flex;
+    justify-content: center;
+}
+
+.deck-cards img {
+    width: 10%;
+    margin: 3px;
+}
+
+div.carousel-nav-icon>svg {
+    height: 30px;
+    width: 30px;
+}
+
+html[data-bs-theme=dark] div.carousel-nav-icon>svg {
+    fill: #FFF !important;
+}
+
+@media (max-width: 767px) {
+    .carousel-inner .carousel-item>div {
+        display: none;
+    }
+
+    .carousel-inner .carousel-item>div:first-child {
+        display: block;
+    }
+}
+
+.carousel-inner .carousel-item.active,
+.carousel-inner .carousel-item-next,
+.carousel-inner .carousel-item-prev {
+    display: flex;
+}
+
+/* medium and up screens */
+@media (min-width: 768px) {
+
+    .carousel-inner .carousel-item-end.active,
+    .carousel-inner .carousel-item-next {
+        transform: translateX(33%);
+    }
+
+    .carousel-inner .carousel-item-start.active,
+    .carousel-inner .carousel-item-prev {
+        transform: translateX(-33%);
+    }
+}
+
+.carousel-inner .carousel-item-end,
+.carousel-inner .carousel-item-start {
+    transform: translateX(0);
+}
+
+/* Nothing below this point is needed. */
+.dark-mode-toggle {
+    bottom: 3%;
+    right: 3%;
+    z-index: 10;
+}
+
+.dark-mode-toggle,
+.dark-mode-toggle>*,
+.dark-mode-toggle>*>* {
+    cursor: pointer;
+}
+
+.card {
+    border: none;
+    text-align: center;
+}
+
+@media only screen and (max-width: 425px) {
+    .board {
+        padding: 10px;
+        margin: 20px 0;
+    }
+
+    div.carousel-nav-icon>svg {
+        height: 20px;
+        width: 20px;
+    }
+
+    .carousel-inner .carousel-item>div:first-child {
+        display: block;
+        margin: auto;
+    }
+}
